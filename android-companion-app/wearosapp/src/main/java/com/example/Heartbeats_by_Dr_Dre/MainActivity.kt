@@ -48,7 +48,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
-    private val dataClient by lazy { Wearable.getDataClient(this) }
     /** onCreate()
      * Requests permission, handles startup stuff, then starts the program
      * Note that this isn't a composable function, so don't try making it do anything else
