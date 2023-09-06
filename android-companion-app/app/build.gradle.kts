@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.example.Heartbeats_by_Dr_Dre"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 31
         versionCode = 1
         versionName = "1.0"
 

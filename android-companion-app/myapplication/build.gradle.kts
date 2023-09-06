@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.Heartbeats_by_Dr_Dre"
+    namespace = "com.example.myapplication"
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.example.Heartbeats_by_Dr_Dre"
+        applicationId = "com.example.myapplication"
         minSdk = 30
-        targetSdk = 31
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
         vectorDrawables {
