@@ -13,8 +13,8 @@ happen when it's off, f 28;
 #X text 325 600 Creates an oscillating cosine wave with frequency 440Hz
 , f 24;
 #X text 325 690 Multiply signals together;
-#X obj 1065 86 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10
-0 12 -232576 -1 -1 18250 1;
+#X obj 1325 246 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10
+0 12 -232576 -1 -1 14950 1;
 #X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate'
 (tempo value) in BPM - Creates a pulsing sine tone to the given tempo
 HOW TO USE IT? - Make sure your audio device is set up correctly in
@@ -23,15 +23,15 @@ to start/stop playback - Click and drag the big purple slider to change
 the pulse rate value (in the range 40-200 BPM), f 39;
 #X obj 629 82 tgl 75 0 empty empty start_or_stop_pulse 0 -10 0 12 -204786
 -1 -1 0 1;
-#X floatatom 1062 141 5 0 0 0 - - -;
-#X floatatom 1094 214 5 0 0 0 - - -;
-#X obj 1062 164 t b f;
-#X obj 1094 190 expr floor($f1);
+#X floatatom 1322 301 5 0 0 0 - - -;
+#X floatatom 1354 374 5 0 0 0 - - -;
+#X obj 1322 324 t b f;
+#X obj 1354 350 expr floor($f1);
 #X obj 629 324 metro 1 120 permin;
-#X obj 1062 12 loadbang;
-#X msg 1062 36 120;
-#X text 1098 35 Default start-up tempo is 120BPM;
-#X text 1210 190 Convert tempo to int value;
+#X obj 1322 42 loadbang;
+#X msg 1322 66 120;
+#X text 1358 65 Default start-up tempo is 120BPM;
+#X text 1470 350 Convert tempo to int value;
 #X obj 629 358 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
 -1 -1;
 #X text 536 322 Create pulses to the given tempo (120BPM by default)
@@ -43,7 +43,7 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X obj 772 273 expr 1/$f1;
 #X msg 737 236 2;
 #X obj 639 274 r tempo;
-#X obj 1094 237 s tempo;
+#X obj 1354 397 s tempo;
 #X obj 808 211 loadbang;
 #X text 820 646 Trigger ADSR envelope;
 #X text 517 440 Toggle ADSR on;
@@ -58,8 +58,8 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X floatatom 609 840 5 0 0 0 - - -;
 #X obj 609 815 expr if ($f1 == 1 \, 0 \, $f2);
 #X obj 788 725 loadbang;
-#X obj 602 37 r appOnOff;
-#X obj 926 36 r appHeartRate;
+#X obj 629 37 r appOnOff;
+#X obj 1210 66 r appHeartRate;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
 #X obj 438 160 inlet;
@@ -171,6 +171,57 @@ send to line~, f 22;
 #X obj 26 3 loadbang;
 #X msg 26 27 1;
 #X msg 788 748 0.7;
+#N canvas -9 -9 1920 976 bound_values 0;
+#X floatatom 34 168 5 0 0 0 - - -;
+#X floatatom 34 275 5 0 0 0 - - -;
+#X floatatom 34 322 5 0 0 0 - - -;
+#X obj 34 345 outlet;
+#X obj 34 191 expr if ($f1 >= $f2 \, $f2 \, $f1);
+#X text 258 191 Only take values <= the upper bound value;
+#X text 257 299 Only take values >= the lower bound value;
+#X obj 34 112 inlet input_value;
+#X obj 241 162 inlet upper_bound;
+#X obj 241 271 inlet lower_bound;
+#X obj 34 298 expr if ($f1 <= $f2 \, $f2 \, $f1);
+#X text 813 55 Bounds the given input value to the specified interval
+range: [upper bound \, lower bound].;
+#X text 806 102 Args: input_value (float) - the value of the particular
+input (eg \, heart rate) upper_bound (float) - the upper bound to restrict
+the input value by. If input_value > upper_bound \, returns the upper_bound.
+lower_bound (float) - the lower bound to restrict the input value by.
+If input_value < lower_bound \, returns the lower_bound.;
+#X text 814 208 Returns: the bounded input value;
+#X text 241 247 LOWER BOUND (MIDDLE INLET):;
+#X text 241 138 UPPER BOUND (RIGHT INLET):;
+#X text 34 88 INPUT VALUE (LEFT INLET):;
+#X connect 0 0 4 0;
+#X connect 1 0 10 0;
+#X connect 2 0 3 0;
+#X connect 4 0 1 0;
+#X connect 7 0 0 0;
+#X connect 8 0 4 1;
+#X connect 9 0 10 1;
+#X connect 10 0 2 0;
+#X restore 1322 179 pd bound_values;
+#X floatatom 1322 153 5 0 0 0 - - -;
+#X floatatom 1322 203 5 0 0 0 - - -;
+#X floatatom 1424 153 5 0 0 0 - - -;
+#X msg 1424 129 200;
+#X floatatom 1373 153 5 0 0 0 - - -;
+#X msg 1373 129 40;
+#X text 1341 793 Handle continuous toggle of 1 value into the toggle
+;
+#X text 1403 820 Handle 999 values? set to 120 BPM?;
+#X text 1262 849 Change how on/off switch works - make immediate volume
+off;
+#X text 1324 872 This may require very small delay between turning
+patch off and closing stream - see if required;
+#X text 1445 759 TODD HOWARD (TODO):;
+#X text 1471 142 Bound the heart rate values in the interval [40 \,
+200] BPM;
+#X obj 1373 96 loadbang;
+#X text 1192 43 HEART RATE INPUT:;
+#X text 626 13 TOGGLE ON/OFF INPUT:;
 #X connect 0 0 39 0;
 #X connect 3 0 2 0;
 #X connect 4 0 0 0;
@@ -182,7 +233,7 @@ send to line~, f 22;
 #X connect 15 0 13 0;
 #X connect 16 0 21 0;
 #X connect 17 0 18 0;
-#X connect 18 0 9 0;
+#X connect 18 0 57 0;
 #X connect 21 0 36 0;
 #X connect 21 0 38 0;
 #X connect 23 0 27 0;
@@ -203,7 +254,7 @@ send to line~, f 22;
 #X connect 42 0 41 0;
 #X connect 43 0 55 0;
 #X connect 44 0 11 0;
-#X connect 45 0 9 0;
+#X connect 45 0 57 0;
 #X connect 46 0 0 1;
 #X connect 47 0 51 0;
 #X connect 47 0 48 0;
@@ -219,3 +270,12 @@ send to line~, f 22;
 #X connect 54 0 3 0;
 #X connect 55 0 42 1;
 #X connect 55 0 41 0;
+#X connect 56 0 58 0;
+#X connect 57 0 56 0;
+#X connect 58 0 9 0;
+#X connect 59 0 56 2;
+#X connect 60 0 59 0;
+#X connect 61 0 56 1;
+#X connect 62 0 61 0;
+#X connect 69 0 62 0;
+#X connect 69 0 60 0;
