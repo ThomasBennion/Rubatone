@@ -9,7 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.Heartbeats_by_Dr_Dre"
-        minSdk = 24
+//        change min sdk from 24 to 28 for Kortholt
+        minSdk = 28
         targetSdk = 31
         versionCode = 1
         versionName = "1.0"
@@ -29,12 +30,22 @@ android {
             )
         }
     }
-    compileOptions {
+
+/*
+compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+ */
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+//    change jvmtarget from 1.8 to 11
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     buildFeatures {
         compose = true
@@ -68,4 +79,5 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("com.mutualmobile:composesensors:1.1.1")
+    implementation("net.simno.kortholt:kortholt:3.0.0")
 }

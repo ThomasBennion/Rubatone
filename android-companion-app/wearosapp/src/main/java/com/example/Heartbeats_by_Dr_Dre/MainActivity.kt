@@ -130,7 +130,7 @@ fun HeartRateSensor() {
 
     val heartRateSensor: Sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
 
-    val default: Float = 21.00F
+    val default: Float = 999.00F
     val sensorStatus = remember {
         mutableStateOf(default)
     }
@@ -143,6 +143,7 @@ fun HeartRateSensor() {
             //
         }
 
+//        toggles the sensor on the wearable
         fun toggleSensor() {
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
@@ -160,6 +161,7 @@ fun HeartRateSensor() {
             }
         }
 
+//        send heart rate data to phone
         private fun sendHeartRateToPhone(heartRateValue: Float) {
             try {
             val putDataMapRequest = PutDataMapRequest.create(heartRatePath)

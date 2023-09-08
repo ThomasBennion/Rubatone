@@ -6,51 +6,95 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import net.simno.kortholt.kortholt
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
+
     // triggers when application tab is navigated off/ tabs switched/ phone screen locked
     override fun onPause() {
-        super.onPause()
+        // remove wearable listener when app is paused/navigated off, but not closed
         Wearable.getDataClient(this).removeListener(this)
-        Log.d("PAUSED", "listener is paused")
+
+        // Pause playback by sending float value of 0.0f
+        kortholt.sendFloat("appOnOff", 0.0f)
+
+
+        runBlocking {
+            delay(600)
+            kortholt.stopStream()
+        }
+
+        super.onPause()
     }
 
     // Triggers when application tab is navigated back to / resumed
     public override fun onResume() {
-        super.onResume()
+        // add wearable listener when tab is resumed
         Wearable.getDataClient(this).addListener(this)
-        Log.d("RESUME", "listener is resumed")
+
+        // Resume playback by sending float value of 1.0f
+        runBlocking {
+            kortholt.startStream()
+        }
+        kortholt.sendFloat("appOnOff", 1.0f)
+
+        super.onResume()
+    }
+
+    override fun onDestroy() {
+        // Pause playback by sending float value of 0.0f
+        kortholt.sendFloat("appOnOff", 0.0f)
+        // Stop audio stream and close patch
+        runBlocking {
+            kortholt.stopStream()
+            kortholt.closePatch()
+        }
+        super.onDestroy()
     }
 
     /*
@@ -80,8 +124,11 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
     }
 
+//    On create
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Load PD patch
+        lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
         setContent {
             MainCompanionAppLayout(localHeartRate)
         }
@@ -122,12 +169,11 @@ fun MainCompanionAppLayout(localHeartRate: Float) {
         },
 
         floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    onClick = {  },
-                ) {
-                    androidx.compose.material3.Icon(imageVector = Icons.Default.Close, contentDescription ="", Modifier.size(30.dp))
-                    Text(text = "Mute")
-                }
+            // turn sounds on/off
+            PlayControl(modifier = Modifier)
+
+            // change music tempo
+            TempoControl(localHeartRate)
         }
 
     ) { innerPadding ->
@@ -154,4 +200,79 @@ fun HeartRateMonitor(localHeartRate: Float) {
         androidx.compose.material3.Icon(imageVector = Icons.Default.Favorite, contentDescription ="", Modifier.size(120.dp) )
         Text(text = "${localHeartRate.roundToInt()} BPM", fontSize = 35.sp)
 
+}
+
+
+/**
+ * Controls the playback of the synth tone
+ * (note on/off).
+ */
+@Composable
+fun PlayControl(modifier: Modifier) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    val scope = rememberCoroutineScope()
+
+    // Store state for synth playback (initialise to false)
+    var isPlaying by rememberSaveable { mutableStateOf(false) }
+
+    //   call function to modify heart rate tempo in PD patch
+//    kortholt.sendFloat("appHeartRate", heartRate)
+
+
+    // play audio
+    if (isPlaying) {
+        runBlocking {
+            // Start audio stream
+            scope.launch { kortholt.startStream() }
+            Log.d("K START", "Kortholt stream is starting")
+        }
+        // Toggle playback in PD patch by sending float value of 1
+        kortholt.sendFloat("appOnOff", 1.0f)
+        // Change playback status after playback has been started
+    }
+
+    // Stop audio
+    else {
+        // Toggle playback off in PD patch by sending float value of 0
+        // Change playback status after playback has been stopped
+        // isPlaying = false
+
+        kortholt.sendFloat("appOnOff", 0.0f)
+        runBlocking {
+            // Stop audio stream
+            scope.launch {
+//                delay(600)
+                kortholt.stopStream()
+            }
+            Log.d("K STOP", "Kortholt stream is stopping")
+        }
+
+    }
+
+    // Create a button
+    ExtendedFloatingActionButton(modifier = modifier,
+        // isPlaying is current true, set to false, and vice versa
+        onClick = {
+            isPlaying = !isPlaying
+
+        // Play audio
+            }) {
+        // Change the button label
+        if (!isPlaying) {
+            // If stopped, set the button label to 'Play'
+            Text(text = "play")
+        } else {
+            // If playing, set the button label to 'Stop'
+            Text(text = "stop")
+        }
+    }
+}
+
+@Composable
+fun TempoControl(heartRate: Float) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    //   call function to modify heart rate tempo in PD patch
+    kortholt.sendFloat("appHeartRate", heartRate)
 }
