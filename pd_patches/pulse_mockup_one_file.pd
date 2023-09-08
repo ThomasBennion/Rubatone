@@ -1,18 +1,18 @@
 #N canvas -9 -9 1920 976 12;
-#X obj 553 688 *~;
-#X obj 552 913 dac~;
+#X obj 583 608 *~;
+#X obj 582 923 dac~;
 #X msg 26 162 \; pd dsp \$1;
 #X obj 26 106 tgl 50 0 empty empty DSP_on_off 0 -10 0 12 -262130 -1
 -1 1 1;
-#X obj 553 610 osc~ 440;
-#X text 297 884 Send signal out to a DAC (Digital to Analogue Converter)
+#X obj 583 530 osc~ 440;
+#X text 327 864 Send signal out to a DAC (Digital to Analogue Converter)
 to create audio signal output on your selected device, f 28;
 #X text 119 104 Turn DSP on/off (Digital Signal Processing) - this
 basically makes the sound happen when it's on \, and doesn't make it
 happen when it's off, f 28;
-#X text 325 600 Creates an oscillating cosine wave with frequency 440Hz
+#X text 355 520 Creates an oscillating cosine wave with frequency 440Hz
 , f 24;
-#X text 325 690 Multiply signals together;
+#X text 355 610 Multiply signals together;
 #X obj 1325 246 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10
 0 12 -232576 -1 -1 14950 1;
 #X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate'
@@ -21,44 +21,41 @@ HOW TO USE IT? - Make sure your audio device is set up correctly in
 Media > Audio Settings... - Turn DSP on - Press the big green button
 to start/stop playback - Click and drag the big purple slider to change
 the pulse rate value (in the range 40-200 BPM), f 39;
-#X obj 629 82 tgl 75 0 empty empty start_or_stop_pulse 0 -10 0 12 -204786
--1 -1 0 1;
+#X obj 659 132 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12
+-204786 -1 -1 0 1;
 #X floatatom 1322 301 5 0 0 0 - - -;
 #X floatatom 1354 374 5 0 0 0 - - -;
 #X obj 1322 324 t b f;
 #X obj 1354 350 expr floor($f1);
-#X obj 629 324 metro 1 120 permin;
+#X obj 659 328 metro 1 120 permin;
 #X obj 1322 42 loadbang;
 #X msg 1322 66 120;
 #X text 1358 65 Default start-up tempo is 120BPM;
 #X text 1470 350 Convert tempo to int value;
-#X obj 629 358 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
+#X obj 659 362 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
 -1 -1;
-#X text 536 322 Create pulses to the given tempo (120BPM by default)
+#X text 566 326 Create pulses to the given tempo (120BPM by default)
 , f 11;
-#X msg 772 236 0.5;
-#X msg 808 236 1;
-#X text 854 235 beat length;
-#X floatatom 772 297 5 0 0 0 - - -;
-#X obj 772 273 expr 1/$f1;
-#X msg 737 236 2;
-#X obj 639 274 r tempo;
+#X msg 837 243 0.5;
+#X msg 873 243 1;
+#X text 919 242 beat length;
+#X floatatom 802 304 5 0 0 0 - - -;
+#X obj 802 280 expr 1/$f1;
+#X msg 802 243 2;
+#X obj 675 279 r tempo;
 #X obj 1354 397 s tempo;
-#X obj 808 211 loadbang;
-#X text 820 646 Trigger ADSR envelope;
-#X text 517 440 Toggle ADSR on;
-#X text 703 440 Toggle ADSR off after 2ms delay;
-#X msg 639 298 tempo \$1 permin;
-#X msg 629 441 1;
-#X msg 667 441 0;
-#X obj 667 416 del 2;
-#X obj 553 875 *~;
-#X obj 609 735 tgl 15 0 empty empty TURN 17 7 0 10 -262144 -1 -1 0
-1;
-#X floatatom 609 840 5 0 0 0 - - -;
-#X obj 609 815 expr if ($f1 == 1 \, 0 \, $f2);
-#X obj 788 725 loadbang;
-#X obj 629 37 r appOnOff;
+#X obj 873 218 loadbang;
+#X text 850 566 Trigger ADSR envelope;
+#X text 547 444 Toggle ADSR on;
+#X text 733 444 Toggle ADSR off after 2ms delay;
+#X msg 675 303 tempo \$1 permin;
+#X msg 659 445 1;
+#X msg 697 445 0;
+#X obj 697 420 del 2;
+#X obj 583 885 *~;
+#X obj 639 675 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 -204786
+-1 -1 0 1;
+#X obj 639 630 r appOnOff;
 #X obj 1210 66 r appHeartRate;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
@@ -160,17 +157,14 @@ send to line~, f 22;
 #X connect 58 0 6 0;
 #X connect 59 0 47 0;
 #X connect 60 0 46 0;
-#X restore 629 648 pd adsr;
+#X restore 659 568 pd adsr;
 #X f 26;
-#X obj 664 572 loadbang;
-#X msg 700 624 10;
-#X msg 736 624 100;
-#X msg 772 624 100;
-#X msg 808 624 300;
-#X msg 664 624 1;
+#X obj 694 492 loadbang;
+#X msg 730 544 10;
+#X msg 766 544 100;
+#X msg 694 544 1;
 #X obj 26 3 loadbang;
 #X msg 26 27 1;
-#X msg 788 748 0.7;
 #N canvas -9 -9 1920 976 bound_values 0;
 #X floatatom 34 168 5 0 0 0 - - -;
 #X floatatom 34 275 5 0 0 0 - - -;
@@ -212,16 +206,133 @@ If input_value < lower_bound \, returns the lower_bound.;
 #X text 1341 793 Handle continuous toggle of 1 value into the toggle
 ;
 #X text 1403 820 Handle 999 values? set to 120 BPM?;
-#X text 1262 849 Change how on/off switch works - make immediate volume
-off;
-#X text 1324 872 This may require very small delay between turning
+#X text 1267 651 This may require very small delay between turning
 patch off and closing stream - see if required;
 #X text 1445 759 TODD HOWARD (TODO):;
 #X text 1471 142 Bound the heart rate values in the interval [40 \,
 200] BPM;
 #X obj 1373 96 loadbang;
 #X text 1192 43 HEART RATE INPUT:;
-#X text 626 13 TOGGLE ON/OFF INPUT:;
+#X text 636 606 TOGGLE ON/OFF INPUT:;
+#X msg 802 544 100;
+#N canvas -32 228 1920 997 adsr 0;
+#X obj 129 120 inlet;
+#X obj 438 160 inlet;
+#X text 125 95 trigger;
+#X obj 129 148 sel 0;
+#X obj 190 273 f \$1;
+#X obj 495 160 inlet;
+#X obj 422 285 del \$2;
+#X obj 595 456 line~;
+#X obj 446 313 f \$4;
+#X obj 545 160 inlet;
+#X obj 600 160 inlet;
+#X obj 656 160 inlet;
+#X msg 129 179 stop;
+#X obj 596 315 pack 0 \$5;
+#X text 438 138 level;
+#X obj 485 364 * \$1;
+#X obj 595 486 outlet~;
+#X text 57 135 if zero;
+#X text 57 152 release;
+#X text 36 169 and cancel;
+#X text 71 186 decay;
+#X text 667 307 on release ramp;
+#X text 668 324 back to zero;
+#X obj 446 338 * 0.01;
+#X text 82 564 Objects such as "f" and "pack" can be given dollar sign
+arguments to initialize their contents from adsr's creation arguments.
+Inlets are supplied to change them on the fly.;
+#X text 122 35 ADSR ENVELOPE;
+#X text 491 138 attack;
+#X text 546 138 decay;
+#X text 593 138 sustain;
+#X text 653 138 release;
+#X text 229 80 attack;
+#X obj 231 101 moses;
+#X obj 218 131 t b b;
+#X msg 152 299 0;
+#X text 58 266 ATTACK:;
+#X text 82 474 When you send this patch a positive trigger it schedules
+a line~ to do an attack and decay \, and if zero \, it starts the release
+ramp.;
+#X text 596 564 Updated for Pd version 0.37;
+#X text 279 98 test for negative trigger;
+#X text 277 122 if so \, zero;
+#X text 278 137 the output;
+#X text 300 174 in any case;
+#X text 442 122 peak;
+#X text 303 158 ... do this;
+#X text 82 526 Negative triggers cause the output to jump to zero and
+then attack (instead of attacking from the current location).;
+#X text 343 20 Arguments: level \, attack time \, decay time \, sustain
+level \, release time. A \, D \, and R are in msec and S is in percent.
+This patch is used as an abstraction in various examples.;
+#X obj 596 356 s line;
+#X obj 485 419 s line;
+#X obj 190 328 s line;
+#X obj 595 419 r line;
+#X text 309 374 multiply by peak level and pack with decay time, f
+24;
+#X text 292 281 on attack \, set a delay for sustain, f 17;
+#X text 297 319 recall sustain value convert from percent, f 20;
+#X text 57 288 optionally bash to zero, f 12;
+#X text 21 326 then recall peak level and pack with attack time and
+send to line~, f 22;
+#X text 387 420 send to line~;
+#X text 645 356 send to line~;
+#X text 649 412 get attack/decay/release lines, f 23;
+#X text 644 456 generate envelope;
+#X obj 263 164 b;
+#X obj 190 298 pack f \$2;
+#X obj 485 388 pack f \$3;
+#X connect 0 0 3 0;
+#X connect 1 0 4 1;
+#X connect 1 0 15 1;
+#X connect 3 0 12 0;
+#X connect 3 0 13 0;
+#X connect 3 1 31 0;
+#X connect 4 0 59 0;
+#X connect 5 0 6 1;
+#X connect 5 0 59 1;
+#X connect 6 0 8 0;
+#X connect 7 0 16 0;
+#X connect 8 0 23 0;
+#X connect 9 0 60 1;
+#X connect 10 0 8 1;
+#X connect 11 0 13 1;
+#X connect 12 0 6 0;
+#X connect 13 0 45 0;
+#X connect 15 0 60 0;
+#X connect 23 0 15 0;
+#X connect 31 0 32 0;
+#X connect 31 1 58 0;
+#X connect 32 0 58 0;
+#X connect 32 1 33 0;
+#X connect 33 0 47 0;
+#X connect 48 0 7 0;
+#X connect 58 0 4 0;
+#X connect 58 0 6 0;
+#X connect 59 0 47 0;
+#X connect 60 0 46 0;
+#X restore 639 832 pd adsr;
+#X f 26;
+#X obj 674 756 loadbang;
+#X obj 659 58 r appOnOff;
+#X text 656 34 TOGGLE ON/OFF INPUT:;
+#X msg 746 808 0;
+#X msg 782 808 0;
+#X msg 674 808 0.95;
+#X msg 710 808 0;
+#X obj 659 82 del 1 0 msec;
+#X text 753 77 Can use this to add a slight delay to sync pulse start
+with volume toggle on (if required), f 53;
+#X msg 838 544 3000;
+#X msg 818 808 4;
+#X text 1205 628 Have changed how on/off switch works - make immediate
+volume off;
+#X text 853 809 Trigger ADSR envelope that turns audio on instantly
+(0ms) and ramps audio signal from on to off (in 4ms), f 44;
 #X connect 0 0 39 0;
 #X connect 3 0 2 0;
 #X connect 4 0 0 0;
@@ -233,7 +344,7 @@ patch off and closing stream - see if required;
 #X connect 15 0 13 0;
 #X connect 16 0 21 0;
 #X connect 17 0 18 0;
-#X connect 18 0 57 0;
+#X connect 18 0 51 0;
 #X connect 21 0 36 0;
 #X connect 21 0 38 0;
 #X connect 23 0 27 0;
@@ -244,38 +355,46 @@ patch off and closing stream - see if required;
 #X connect 29 0 35 0;
 #X connect 31 0 24 0;
 #X connect 35 0 16 0;
-#X connect 36 0 46 0;
-#X connect 37 0 46 0;
+#X connect 36 0 43 0;
+#X connect 37 0 43 0;
 #X connect 38 0 37 0;
 #X connect 39 0 1 0;
 #X connect 39 0 1 1;
-#X connect 40 0 42 0;
-#X connect 41 0 39 1;
-#X connect 42 0 41 0;
-#X connect 43 0 55 0;
-#X connect 44 0 11 0;
-#X connect 45 0 57 0;
-#X connect 46 0 0 1;
-#X connect 47 0 51 0;
-#X connect 47 0 48 0;
-#X connect 47 0 49 0;
-#X connect 47 0 50 0;
-#X connect 47 0 52 0;
-#X connect 48 0 46 2;
-#X connect 49 0 46 3;
-#X connect 50 0 46 4;
-#X connect 51 0 46 5;
-#X connect 52 0 46 1;
-#X connect 53 0 54 0;
-#X connect 54 0 3 0;
-#X connect 55 0 42 1;
-#X connect 55 0 41 0;
-#X connect 56 0 58 0;
-#X connect 57 0 56 0;
-#X connect 58 0 9 0;
-#X connect 59 0 56 2;
-#X connect 60 0 59 0;
-#X connect 61 0 56 1;
-#X connect 62 0 61 0;
-#X connect 69 0 62 0;
-#X connect 69 0 60 0;
+#X connect 40 0 66 0;
+#X connect 41 0 40 0;
+#X connect 42 0 51 0;
+#X connect 43 0 0 1;
+#X connect 44 0 76 0;
+#X connect 44 0 45 0;
+#X connect 44 0 46 0;
+#X connect 44 0 65 0;
+#X connect 44 0 47 0;
+#X connect 45 0 43 2;
+#X connect 46 0 43 3;
+#X connect 47 0 43 1;
+#X connect 48 0 49 0;
+#X connect 49 0 3 0;
+#X connect 50 0 52 0;
+#X connect 51 0 50 0;
+#X connect 52 0 9 0;
+#X connect 53 0 50 2;
+#X connect 54 0 53 0;
+#X connect 55 0 50 1;
+#X connect 56 0 55 0;
+#X connect 62 0 56 0;
+#X connect 62 0 54 0;
+#X connect 65 0 43 4;
+#X connect 66 0 39 0;
+#X connect 67 0 77 0;
+#X connect 67 0 73 0;
+#X connect 67 0 70 0;
+#X connect 67 0 71 0;
+#X connect 67 0 72 0;
+#X connect 68 0 74 0;
+#X connect 70 0 66 3;
+#X connect 71 0 66 4;
+#X connect 72 0 66 1;
+#X connect 73 0 66 2;
+#X connect 74 0 11 0;
+#X connect 76 0 43 5;
+#X connect 77 0 66 5;
