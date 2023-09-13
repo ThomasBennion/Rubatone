@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.Heartbeats_by_Dr_Dre">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Hear"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Companion_App">
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+<!--        <service android:name=".DataLayerListeningService" android:exported="true" tools:ignore="ExportedService" >-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />-->
+<!--                <data android:scheme="wear" android:host="*"-->
+<!--                    android:path="/start-activity" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Companion_App">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*"
+                    android:path="/start-activity" />
+            </intent-filter>
+
+        </activity>
+
+
+    </application>
+
+</manifest>
