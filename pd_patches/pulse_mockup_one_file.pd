@@ -1,30 +1,18 @@
-#N canvas -9 -9 1920 976 12;
+#N canvas 0 28 1440 900 12;
 #X obj 583 608 *~;
-#X obj 582 923 dac~;
+#X obj 582 1363 dac~;
 #X msg 26 162 \; pd dsp \$1;
-#X obj 26 106 tgl 50 0 empty empty DSP_on_off 0 -10 0 12 -262130 -1
--1 1 1;
+#X obj 26 106 tgl 50 0 empty empty DSP_on_off 0 -10 0 12 #fcfcc4 #000000 #000000 0 1;
 #X obj 583 530 osc~ 440;
-#X text 327 864 Send signal out to a DAC (Digital to Analogue Converter)
-to create audio signal output on your selected device, f 28;
-#X text 119 104 Turn DSP on/off (Digital Signal Processing) - this
-basically makes the sound happen when it's on \, and doesn't make it
-happen when it's off, f 28;
-#X text 355 520 Creates an oscillating cosine wave with frequency 440Hz
-, f 24;
+#X text 327 1304 Send signal out to a DAC (Digital to Analogue Converter) to create audio signal output on your selected device, f 28;
+#X text 119 104 Turn DSP on/off (Digital Signal Processing) - this basically makes the sound happen when it's on \, and doesn't make it happen when it's off, f 28;
+#X text 355 520 Creates an oscillating cosine wave with frequency 440Hz, f 24;
 #X text 355 610 Multiply signals together;
-#X obj 1325 246 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10
-0 12 -232576 -1 -1 14950 1;
-#X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate'
-(tempo value) in BPM - Creates a pulsing sine tone to the given tempo
-HOW TO USE IT? - Make sure your audio device is set up correctly in
-Media > Audio Settings... - Turn DSP on - Press the big green button
-to start/stop playback - Click and drag the big purple slider to change
-the pulse rate value (in the range 40-200 BPM), f 39;
-#X obj 659 132 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12
--204786 -1 -1 0 1;
-#X floatatom 1322 301 5 0 0 0 - - -;
-#X floatatom 1354 374 5 0 0 0 - - -;
+#X obj 1325 246 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10 0 12 #e0c4fc #000000 #000000 0 1;
+#X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate' (tempo value) in BPM - Creates a pulsing sine tone to the given tempo HOW TO USE IT? - Make sure your audio device is set up correctly in Media > Audio Settings... - Turn DSP on - Press the big green button to start/stop playback - Click and drag the big purple slider to change the pulse rate value (in the range 40-200 BPM), f 39;
+#X obj 659 132 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12 #c4fcc4 #000000 #000000 0 1;
+#X floatatom 1322 301 5 0 0 0 - - - 0;
+#X floatatom 1354 374 5 0 0 0 - - - 0;
 #X obj 1322 324 t b f;
 #X obj 1354 350 expr floor($f1);
 #X obj 659 328 metro 1 120 permin;
@@ -32,14 +20,12 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X msg 1322 66 120;
 #X text 1358 65 Default start-up tempo is 120BPM;
 #X text 1470 350 Convert tempo to int value;
-#X obj 659 362 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
--1 -1;
-#X text 566 326 Create pulses to the given tempo (120BPM by default)
-, f 11;
+#X obj 659 362 bng 19 250 50 0 empty empty empty 0 -10 0 12 #fcfcfc #000000 #000000;
+#X text 566 326 Create pulses to the given tempo (120BPM by default), f 11;
 #X msg 837 243 0.5;
 #X msg 873 243 1;
 #X text 919 242 beat length;
-#X floatatom 802 304 5 0 0 0 - - -;
+#X floatatom 802 304 5 0 0 0 - - - 0;
 #X obj 802 280 expr 1/$f1;
 #X msg 802 243 2;
 #X obj 675 279 r tempo;
@@ -52,10 +38,9 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X msg 659 445 1;
 #X msg 697 445 0;
 #X obj 697 420 del 2;
-#X obj 583 885 *~;
-#X obj 639 675 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 -204786
--1 -1 0 1;
-#X obj 639 630 r appOnOff;
+#X obj 583 1325 *~;
+#X obj 639 1115 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 #c4fcc4 #000000 #000000 0 1;
+#X obj 639 1070 r appOnOff;
 #X obj 1210 66 r appHeartRate;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
@@ -82,9 +67,7 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X text 667 307 on release ramp;
 #X text 668 324 back to zero;
 #X obj 446 338 * 0.01;
-#X text 82 564 Objects such as "f" and "pack" can be given dollar sign
-arguments to initialize their contents from adsr's creation arguments.
-Inlets are supplied to change them on the fly.;
+#X text 82 564 Objects such as "f" and "pack" can be given dollar sign arguments to initialize their contents from adsr's creation arguments. Inlets are supplied to change them on the fly.;
 #X text 122 35 ADSR ENVELOPE;
 #X text 491 138 attack;
 #X text 546 138 decay;
@@ -95,9 +78,7 @@ Inlets are supplied to change them on the fly.;
 #X obj 218 131 t b b;
 #X msg 152 299 0;
 #X text 58 266 ATTACK:;
-#X text 82 474 When you send this patch a positive trigger it schedules
-a line~ to do an attack and decay \, and if zero \, it starts the release
-ramp.;
+#X text 82 474 When you send this patch a positive trigger it schedules a line~ to do an attack and decay \, and if zero \, it starts the release ramp.;
 #X text 596 564 Updated for Pd version 0.37;
 #X text 279 98 test for negative trigger;
 #X text 277 122 if so \, zero;
@@ -105,22 +86,17 @@ ramp.;
 #X text 300 174 in any case;
 #X text 442 122 peak;
 #X text 303 158 ... do this;
-#X text 82 526 Negative triggers cause the output to jump to zero and
-then attack (instead of attacking from the current location).;
-#X text 343 20 Arguments: level \, attack time \, decay time \, sustain
-level \, release time. A \, D \, and R are in msec and S is in percent.
-This patch is used as an abstraction in various examples.;
+#X text 82 526 Negative triggers cause the output to jump to zero and then attack (instead of attacking from the current location).;
+#X text 343 20 Arguments: level \, attack time \, decay time \, sustain level \, release time. A \, D \, and R are in msec and S is in percent. This patch is used as an abstraction in various examples.;
 #X obj 596 356 s line;
 #X obj 485 419 s line;
 #X obj 190 328 s line;
 #X obj 595 419 r line;
-#X text 309 374 multiply by peak level and pack with decay time, f
-24;
+#X text 309 374 multiply by peak level and pack with decay time, f 24;
 #X text 292 281 on attack \, set a delay for sustain, f 17;
 #X text 297 319 recall sustain value convert from percent, f 20;
 #X text 57 288 optionally bash to zero, f 12;
-#X text 21 326 then recall peak level and pack with attack time and
-send to line~, f 22;
+#X text 21 326 then recall peak level and pack with attack time and send to line~, f 22;
 #X text 387 420 send to line~;
 #X text 645 356 send to line~;
 #X text 649 412 get attack/decay/release lines, f 23;
@@ -165,10 +141,10 @@ send to line~, f 22;
 #X msg 694 544 1;
 #X obj 26 3 loadbang;
 #X msg 26 27 1;
-#N canvas -9 -9 1920 976 bound_values 0;
-#X floatatom 34 168 5 0 0 0 - - -;
-#X floatatom 34 275 5 0 0 0 - - -;
-#X floatatom 34 322 5 0 0 0 - - -;
+#N canvas 0 28 1440 872 bound_values 0;
+#X floatatom 34 168 5 0 0 0 - - - 0;
+#X floatatom 34 275 5 0 0 0 - - - 0;
+#X floatatom 34 322 5 0 0 0 - - - 0;
 #X obj 34 345 outlet;
 #X obj 34 191 expr if ($f1 >= $f2 \, $f2 \, $f1);
 #X text 258 191 Only take values <= the upper bound value;
@@ -177,13 +153,8 @@ send to line~, f 22;
 #X obj 241 162 inlet upper_bound;
 #X obj 241 271 inlet lower_bound;
 #X obj 34 298 expr if ($f1 <= $f2 \, $f2 \, $f1);
-#X text 813 55 Bounds the given input value to the specified interval
-range: [upper bound \, lower bound].;
-#X text 806 102 Args: input_value (float) - the value of the particular
-input (eg \, heart rate) upper_bound (float) - the upper bound to restrict
-the input value by. If input_value > upper_bound \, returns the upper_bound.
-lower_bound (float) - the lower bound to restrict the input value by.
-If input_value < lower_bound \, returns the lower_bound.;
+#X text 813 55 Bounds the given input value to the specified interval range: [upper bound \, lower bound].;
+#X text 806 102 Args: input_value (float) - the value of the particular input (eg \, heart rate) upper_bound (float) - the upper bound to restrict the input value by. If input_value > upper_bound \, returns the upper_bound. lower_bound (float) - the lower bound to restrict the input value by. If input_value < lower_bound \, returns the lower_bound.;
 #X text 814 208 Returns: the bounded input value;
 #X text 241 247 LOWER BOUND (MIDDLE INLET):;
 #X text 241 138 UPPER BOUND (RIGHT INLET):;
@@ -197,23 +168,20 @@ If input_value < lower_bound \, returns the lower_bound.;
 #X connect 9 0 10 1;
 #X connect 10 0 2 0;
 #X restore 1322 179 pd bound_values;
-#X floatatom 1322 153 5 0 0 0 - - -;
-#X floatatom 1322 203 5 0 0 0 - - -;
-#X floatatom 1424 153 5 0 0 0 - - -;
+#X floatatom 1322 153 5 0 0 0 - - - 0;
+#X floatatom 1322 203 5 0 0 0 - - - 0;
+#X floatatom 1424 153 5 0 0 0 - - - 0;
 #X msg 1424 129 200;
-#X floatatom 1373 153 5 0 0 0 - - -;
+#X floatatom 1373 153 5 0 0 0 - - - 0;
 #X msg 1373 129 40;
-#X text 1341 793 Handle continuous toggle of 1 value into the toggle
-;
-#X text 1403 820 Handle 999 values? set to 120 BPM?;
-#X text 1267 651 This may require very small delay between turning
-patch off and closing stream - see if required;
-#X text 1445 759 TODD HOWARD (TODO):;
-#X text 1471 142 Bound the heart rate values in the interval [40 \,
-200] BPM;
+#X text 1391 1133 Handle continuous toggle of 1 value into the toggle;
+#X text 1453 1160 Handle 999 values? set to 120 BPM?;
+#X text 1317 991 This may require very small delay between turning patch off and closing stream - see if required;
+#X text 1495 1099 TODD HOWARD (TODO):;
+#X text 1471 142 Bound the heart rate values in the interval [40 \, 200] BPM;
 #X obj 1373 96 loadbang;
 #X text 1192 43 HEART RATE INPUT:;
-#X text 636 606 TOGGLE ON/OFF INPUT:;
+#X text 636 1049 TOGGLE ON/OFF INPUT:;
 #X msg 802 544 100;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
@@ -240,9 +208,7 @@ patch off and closing stream - see if required;
 #X text 667 307 on release ramp;
 #X text 668 324 back to zero;
 #X obj 446 338 * 0.01;
-#X text 82 564 Objects such as "f" and "pack" can be given dollar sign
-arguments to initialize their contents from adsr's creation arguments.
-Inlets are supplied to change them on the fly.;
+#X text 82 564 Objects such as "f" and "pack" can be given dollar sign arguments to initialize their contents from adsr's creation arguments. Inlets are supplied to change them on the fly.;
 #X text 122 35 ADSR ENVELOPE;
 #X text 491 138 attack;
 #X text 546 138 decay;
@@ -253,9 +219,7 @@ Inlets are supplied to change them on the fly.;
 #X obj 218 131 t b b;
 #X msg 152 299 0;
 #X text 58 266 ATTACK:;
-#X text 82 474 When you send this patch a positive trigger it schedules
-a line~ to do an attack and decay \, and if zero \, it starts the release
-ramp.;
+#X text 82 474 When you send this patch a positive trigger it schedules a line~ to do an attack and decay \, and if zero \, it starts the release ramp.;
 #X text 596 564 Updated for Pd version 0.37;
 #X text 279 98 test for negative trigger;
 #X text 277 122 if so \, zero;
@@ -263,22 +227,17 @@ ramp.;
 #X text 300 174 in any case;
 #X text 442 122 peak;
 #X text 303 158 ... do this;
-#X text 82 526 Negative triggers cause the output to jump to zero and
-then attack (instead of attacking from the current location).;
-#X text 343 20 Arguments: level \, attack time \, decay time \, sustain
-level \, release time. A \, D \, and R are in msec and S is in percent.
-This patch is used as an abstraction in various examples.;
+#X text 82 526 Negative triggers cause the output to jump to zero and then attack (instead of attacking from the current location).;
+#X text 343 20 Arguments: level \, attack time \, decay time \, sustain level \, release time. A \, D \, and R are in msec and S is in percent. This patch is used as an abstraction in various examples.;
 #X obj 596 356 s line;
 #X obj 485 419 s line;
 #X obj 190 328 s line;
 #X obj 595 419 r line;
-#X text 309 374 multiply by peak level and pack with decay time, f
-24;
+#X text 309 374 multiply by peak level and pack with decay time, f 24;
 #X text 292 281 on attack \, set a delay for sustain, f 17;
 #X text 297 319 recall sustain value convert from percent, f 20;
 #X text 57 288 optionally bash to zero, f 12;
-#X text 21 326 then recall peak level and pack with attack time and
-send to line~, f 22;
+#X text 21 326 then recall peak level and pack with attack time and send to line~, f 22;
 #X text 387 420 send to line~;
 #X text 645 356 send to line~;
 #X text 649 412 get attack/decay/release lines, f 23;
@@ -315,25 +274,69 @@ send to line~, f 22;
 #X connect 58 0 6 0;
 #X connect 59 0 47 0;
 #X connect 60 0 46 0;
-#X restore 639 832 pd adsr;
+#X restore 639 1272 pd adsr;
 #X f 26;
-#X obj 674 756 loadbang;
+#X obj 674 1196 loadbang;
 #X obj 659 58 r appOnOff;
 #X text 656 34 TOGGLE ON/OFF INPUT:;
-#X msg 746 808 0;
-#X msg 782 808 0;
-#X msg 674 808 0.95;
-#X msg 710 808 0;
+#X msg 746 1248 0;
+#X msg 782 1248 0;
+#X msg 674 1248 0.95;
+#X msg 710 1248 0;
 #X obj 659 82 del 1 0 msec;
-#X text 753 77 Can use this to add a slight delay to sync pulse start
-with volume toggle on (if required), f 53;
+#X text 753 77 Can use this to add a slight delay to sync pulse start with volume toggle on (if required), f 53;
 #X msg 838 544 3000;
-#X msg 818 808 4;
-#X text 1205 628 Have changed how on/off switch works - make immediate
-volume off;
-#X text 853 809 Trigger ADSR envelope that turns audio on instantly
-(0ms) and ramps audio signal from on to off (in 4ms), f 44;
-#X connect 0 0 39 0;
+#X msg 818 1248 4;
+#X text 1255 968 Have changed how on/off switch works - make immediate volume off;
+#X text 853 1249 Trigger ADSR envelope that turns audio on instantly (0ms) and ramps audio signal from on to off (in 4ms), f 44;
+#X obj 583 1018 *~;
+#X obj 791 817 vsl 50 120 0 1 0 0 empty empty dynamic_control 0 -9 0 12 #feffc6 #000000 #000000 0 1;
+#X floatatom 791 945 5 0 0 0 - - - 0;
+#X obj 791 618 loadbang;
+#N canvas 0 28 1440 872 bound_values 0;
+#X floatatom 34 168 5 0 0 0 - - - 0;
+#X floatatom 34 275 5 0 0 0 - - - 0;
+#X floatatom 34 322 5 0 0 0 - - - 0;
+#X obj 34 345 outlet;
+#X obj 34 191 expr if ($f1 >= $f2 \, $f2 \, $f1);
+#X text 258 191 Only take values <= the upper bound value;
+#X text 257 299 Only take values >= the lower bound value;
+#X obj 34 112 inlet input_value;
+#X obj 241 162 inlet upper_bound;
+#X obj 241 271 inlet lower_bound;
+#X obj 34 298 expr if ($f1 <= $f2 \, $f2 \, $f1);
+#X text 813 55 Bounds the given input value to the specified interval range: [upper bound \, lower bound].;
+#X text 806 102 Args: input_value (float) - the value of the particular input (eg \, heart rate) upper_bound (float) - the upper bound to restrict the input value by. If input_value > upper_bound \, returns the upper_bound. lower_bound (float) - the lower bound to restrict the input value by. If input_value < lower_bound \, returns the lower_bound.;
+#X text 814 208 Returns: the bounded input value;
+#X text 241 247 LOWER BOUND (MIDDLE INLET):;
+#X text 241 138 UPPER BOUND (RIGHT INLET):;
+#X text 34 88 INPUT VALUE (LEFT INLET):;
+#X connect 0 0 4 0;
+#X connect 1 0 10 0;
+#X connect 2 0 3 0;
+#X connect 4 0 1 0;
+#X connect 7 0 0 0;
+#X connect 8 0 4 1;
+#X connect 9 0 10 1;
+#X connect 10 0 2 0;
+#X restore 791 755 pd bound_values;
+#X floatatom 791 729 5 0 0 0 - - - 0;
+#X floatatom 791 779 5 0 0 0 - - - 0;
+#X floatatom 893 729 5 0 0 0 - - - 0;
+#X floatatom 842 729 5 0 0 0 - - - 0;
+#X obj 842 672 loadbang;
+#X obj 650 642 r appAccelerometer;
+#X text 632 619 ACCELEROMETER INPUT:;
+#X text 827 641 Default start-up volume is 0.75;
+#X msg 791 642 0.75;
+#X text 940 718 Bound the volume to the range [0 \, 1];
+#X msg 893 705 0.99;
+#X msg 842 705 0.5;
+#X obj 398 142 s appOnOff;
+#X obj 401 107 tgl 19 0 empty empty empty 0 -10 0 12 #fcfcfc #000000 #000000 0 1;
+#X obj 791 993 line~;
+#X msg 791 969 \$1 5;
+#X connect 0 0 80 0;
 #X connect 3 0 2 0;
 #X connect 4 0 0 0;
 #X connect 9 0 12 0;
@@ -384,7 +387,7 @@ volume off;
 #X connect 62 0 56 0;
 #X connect 62 0 54 0;
 #X connect 65 0 43 4;
-#X connect 66 0 39 0;
+#X connect 66 0 39 1;
 #X connect 67 0 77 0;
 #X connect 67 0 73 0;
 #X connect 67 0 70 0;
@@ -398,3 +401,21 @@ volume off;
 #X connect 74 0 11 0;
 #X connect 76 0 43 5;
 #X connect 77 0 66 5;
+#X connect 80 0 39 0;
+#X connect 81 0 82 0;
+#X connect 82 0 100 0;
+#X connect 83 0 93 0;
+#X connect 84 0 86 0;
+#X connect 85 0 84 0;
+#X connect 86 0 81 0;
+#X connect 87 0 84 2;
+#X connect 88 0 84 1;
+#X connect 89 0 96 0;
+#X connect 89 0 95 0;
+#X connect 90 0 85 0;
+#X connect 93 0 85 0;
+#X connect 95 0 87 0;
+#X connect 96 0 88 0;
+#X connect 98 0 97 0;
+#X connect 99 0 80 1;
+#X connect 100 0 99 0;
