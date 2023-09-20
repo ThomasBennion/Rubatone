@@ -14,6 +14,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,6 +27,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.BottomAppBar
@@ -89,6 +93,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("sensor_list") {
                     SensorList(onBackPress = { navController.navigate("home_screen")})
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 }
                 composable("check_permissions") {
                     RequestPermissions(onSuccess = { navController.navigate("home_screen")})
@@ -310,7 +315,6 @@ fun RequestPermissions(onSuccess: (() -> Unit)) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SensorList(onBackPress: (() -> Unit)) {
-
     Companion_AppTheme {
         Scaffold(
             topBar = {
@@ -334,9 +338,10 @@ fun SensorList(onBackPress: (() -> Unit)) {
         ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(innerPadding)
-                    .background(MaterialTheme.colors.background),
+                    .background(MaterialTheme.colors.background)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center
             ) {
                 HeartRateSensor()
@@ -433,13 +438,13 @@ fun HeartRateSensor() {
     mSensorManager.registerListener(
         heartRateSensorListener,
         heartRateSensor,
-        SensorManager.SENSOR_DELAY_FASTEST
+        SensorManager.SENSOR_DELAY_NORMAL
     )
 
     sensorButton(
         onclick = { heartRateSensorListener.toggleSensor() },
         image = Icons.Default.Favorite,
-        text = "Heart Rate \n ${sensorStatus.value} bpm"
+        text = "Heart Rate"// ${sensorStatus.value} bpm"
     )
 }
 
@@ -526,16 +531,17 @@ fun GyrometerSensor() {
     mSensorManager.registerListener(
         gyrometerSensorListener,
         gyrometerSensor,
-        SensorManager.SENSOR_DELAY_FASTEST
+        SensorManager.SENSOR_DELAY_NORMAL
     )
 
+    val df = DecimalFormat("#.##")
     sensorButton(
         onclick = { gyrometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_3d_rotation_24),
-        text = "Gyrometer \n" +
-                " ${sensorStatus.value[0]}x" +
-                " · ${sensorStatus.value[1]}y" +
-                " · ${sensorStatus.value[2]}z"
+        text = "Gyrometer" /*+
+                " ${df.format(sensorStatus.value[0])}x" +
+                " · ${df.format(sensorStatus.value[1])}y" +
+                " · ${df.format(sensorStatus.value[2])}z"*/
     )
 }
 
@@ -629,10 +635,10 @@ fun AccelerometerSensor() {
     sensorButton(
         onclick = { accelerometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_waving_hand_24),
-        text = "Accelerometer \n" +
+        text = "Accelerometer" /*+
                 " ${df.format(sensorStatus.value[0])}x" +
                 " · ${df.format(sensorStatus.value[1])}y" +
-                " · ${df.format(sensorStatus.value[2])}z"
+                " · ${df.format(sensorStatus.value[2])}z"*/
     )
 }
 
@@ -725,7 +731,7 @@ fun TemperatureSensor() {
     sensorButton(
         onclick = { temperatureSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_thermostat_24),
-        text = "Temperature \n ${sensorStatus.value} °C"
+        text = "Temperature"// ${sensorStatus.value} °C"
     )
 }
 
@@ -818,7 +824,7 @@ fun BarometerSensor() {
     sensorButton(
         onclick = { barometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_air_24),
-        text = "Barometer \n ${sensorStatus.value} hPa"
+        text = "Barometer" // ${sensorStatus.value} hPa"
     )
 }
 
@@ -911,7 +917,7 @@ fun LightSensor() {
     sensorButton(
         onclick = { lightSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_light_mode_24),
-        text = "Light \n ${sensorStatus.value} lx"
+        text = "Light"// ${sensorStatus.value} lx"
     )
 }
 
