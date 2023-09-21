@@ -7,7 +7,6 @@
 package com.example.Heartbeats_by_Dr_Dre
 
 import android.content.pm.PackageManager
-import android.graphics.drawable.VectorDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -17,7 +16,6 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonColors
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
@@ -162,7 +161,7 @@ fun HomePage(onButtonPress: (() -> Unit)) {
                     containerColor = MaterialTheme.colors.background,
                     contentColor = MaterialTheme.colors.background,
                 ) {
-                    Column(
+                    /*Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(MaterialTheme.colors.background),
@@ -180,7 +179,7 @@ fun HomePage(onButtonPress: (() -> Unit)) {
                                 textAlign = TextAlign.Center
                             )
                         }
-                    }
+                    }*/
                 }
             }
         ) { innerPadding ->
@@ -330,11 +329,12 @@ fun SensorList(onBackPress: (() -> Unit)) {
                             Modifier
                                 .fillMaxSize(),
                         ) {
-                            androidx.compose.material3.Text("< Inputs")
+                            androidx.compose.material3.Text("< Stop")
                         }
                     }
                 )
             },
+
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -348,8 +348,9 @@ fun SensorList(onBackPress: (() -> Unit)) {
                 GyrometerSensor()
                 AccelerometerSensor()
                 TemperatureSensor()
-                BarometerSensor()
+                //BarometerSensor()
                 LightSensor()
+                androidx.compose.material3.Text("\n\n")
             }
         }
     }
@@ -384,6 +385,13 @@ fun HeartRateSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val heartRateSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -392,9 +400,13 @@ fun HeartRateSensor() {
 
 //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
-
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -441,10 +453,11 @@ fun HeartRateSensor() {
         SensorManager.SENSOR_DELAY_NORMAL
     )
 
-    sensorButton(
+    SensorButton(
         onclick = { heartRateSensorListener.toggleSensor() },
         image = Icons.Default.Favorite,
-        text = "Heart Rate"// ${sensorStatus.value} bpm"
+        text = "Heart Rate",// ${sensorStatus.value} bpm"
+        buttonOn = buttonOn
     )
 }
 
@@ -477,6 +490,13 @@ fun GyrometerSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val gyrometerSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -485,9 +505,13 @@ fun GyrometerSensor() {
 
         //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
-
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -535,13 +559,14 @@ fun GyrometerSensor() {
     )
 
     val df = DecimalFormat("#.##")
-    sensorButton(
+    SensorButton(
         onclick = { gyrometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_3d_rotation_24),
-        text = "Gyrometer" /*+
+        text = "Gyrometer", /*+
                 " ${df.format(sensorStatus.value[0])}x" +
                 " · ${df.format(sensorStatus.value[1])}y" +
                 " · ${df.format(sensorStatus.value[2])}z"*/
+        buttonOn = buttonOn
     )
 }
 
@@ -574,6 +599,13 @@ fun AccelerometerSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val accelerometerSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -582,9 +614,13 @@ fun AccelerometerSensor() {
 
         //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
-
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -632,13 +668,14 @@ fun AccelerometerSensor() {
     )
 
     val df = DecimalFormat("#.##")
-    sensorButton(
+    SensorButton(
         onclick = { accelerometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_waving_hand_24),
-        text = "Accelerometer" /*+
+        text = "Accelerometer", /*+
                 " ${df.format(sensorStatus.value[0])}x" +
                 " · ${df.format(sensorStatus.value[1])}y" +
                 " · ${df.format(sensorStatus.value[2])}z"*/
+        buttonOn = buttonOn
     )
 }
 
@@ -671,6 +708,13 @@ fun TemperatureSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val temperatureSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -679,9 +723,13 @@ fun TemperatureSensor() {
 
         //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
-
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -728,10 +776,11 @@ fun TemperatureSensor() {
         SensorManager.SENSOR_DELAY_NORMAL
     )
 
-    sensorButton(
+    SensorButton(
         onclick = { temperatureSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_thermostat_24),
-        text = "Temperature"// ${sensorStatus.value} °C"
+        text = "Temperature",// ${sensorStatus.value} °C"
+        buttonOn = buttonOn
     )
 }
 
@@ -764,6 +813,13 @@ fun BarometerSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val barometerSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -772,6 +828,11 @@ fun BarometerSensor() {
 
         //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
 
@@ -821,10 +882,11 @@ fun BarometerSensor() {
         SensorManager.SENSOR_DELAY_NORMAL
     )
 
-    sensorButton(
+    SensorButton(
         onclick = { barometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_air_24),
-        text = "Barometer" // ${sensorStatus.value} hPa"
+        text = "Barometer", // ${sensorStatus.value} hPa"
+        buttonOn = buttonOn
     )
 }
 
@@ -857,6 +919,13 @@ fun LightSensor() {
     val sensorOn = remember {
         mutableStateOf(true)
     }
+    val defaultButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.primaryButtonColors();
+    val disabledButton: ButtonColors =
+        androidx.wear.compose.material.ButtonDefaults.secondaryButtonColors();
+    val buttonOn = remember {
+        mutableStateOf(defaultButton)
+    }
 
     val lightSensorListener = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -865,9 +934,13 @@ fun LightSensor() {
 
         //        toggles the sensor on the wearable
         fun toggleSensor() {
+            if (sensorOn.value) {
+                buttonOn.value = disabledButton
+            } else {
+                buttonOn.value = defaultButton
+            }
             sensorOn.value = sensorOn.value != true
             sensorStatus.value = default
-
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -914,10 +987,11 @@ fun LightSensor() {
         SensorManager.SENSOR_DELAY_FASTEST
     )
 
-    sensorButton(
+    SensorButton(
         onclick = { lightSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_light_mode_24),
-        text = "Light"// ${sensorStatus.value} lx"
+        text = "Light",// ${sensorStatus.value} lx"
+        buttonOn = buttonOn
     )
 }
 
@@ -931,10 +1005,11 @@ fun LightSensor() {
  * @return Sensor Button
  */
 @Composable
-fun sensorButton(onclick: () -> Unit, image: ImageVector, text: String) {
+fun SensorButton(onclick: () -> Unit, image: ImageVector, text: String, buttonOn: MutableState<ButtonColors>) {
     Button(
         onClick = onclick,
         enabled=true,
+        colors = buttonOn.value,
         modifier = Modifier
             .size(240.dp, 60.dp)
             .padding(vertical = 5.dp)
