@@ -63,9 +63,10 @@ import java.text.DecimalFormat
 
 class MainActivity : ComponentActivity() {
     /** onCreate()
-     * Requests permission, handles startup stuff, then starts the program
-     * Note that this isn't a composable function, so don't try making it do anything else
-     * If it does have to handle something, it should be passed to the WearApp() function
+     * Requests permission, handles startup activities, then starts the program
+     * Note that this isn't a composable function, so don't attempt much else
+     * If it does have to handle something, it should be passed to a composable function
+     * (Such as the navigation controls)
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         var startScreen = "home_screen"
@@ -113,8 +114,11 @@ class MainActivity : ComponentActivity() {
 
 /** HomePage()
  * Function for the home page, handles everything inside the function
+ * This is the page users will receive on startup of the application, it shouldn't handle sensors
+ * You can assume the user has granted permissions for the sensors
  *
  * @onButtonPress: Action to be taken on pressing the input button
+ * @return: Home Page
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,25 +165,7 @@ fun HomePage(onButtonPress: (() -> Unit)) {
                     containerColor = MaterialTheme.colors.background,
                     contentColor = MaterialTheme.colors.background,
                 ) {
-                    /*Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colors.background),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Button(
-                            onClick = onButtonPress,
-                            Modifier
-                                .size(width = 80.dp, height = 40.dp)
-                                .align(Alignment.CenterHorizontally),
-                        ) {
-                            androidx.compose.material3.Text(
-                                text = "Inputs",
-                                fontSize = 12.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }*/
+                    //
                 }
             }
         ) { innerPadding ->
@@ -208,9 +194,12 @@ fun HomePage(onButtonPress: (() -> Unit)) {
 }
 
 /** RequestPermissions()
- * Function for the home page, handles everything inside the function
+ * Function for requesting permissions, handles everything inside the function
+ * This page should only appear on first startup of the application,
+ * or if the user hasn't given required permissions.
  *
- * @onSuccess: Action to be taken on pressing the input button
+ * @onSuccess: Action to be taken on pressing the connect button with required sensors
+ * @return: page requesting permissions
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -280,7 +269,7 @@ fun RequestPermissions(onSuccess: (() -> Unit)) {
                                 .align(Alignment.CenterHorizontally),
                         ) {
                             androidx.compose.material3.Text(
-                                text = "Retry",
+                                text = "Connect",
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -291,13 +280,15 @@ fun RequestPermissions(onSuccess: (() -> Unit)) {
         ) { innerPadding ->
                 androidx.compose.material3.Text(
                     text = "Permissions are needed to run this application.\n" +
-                            "Please go to settings and grant this app the required permissions",
+                            "If you have trouble running this application, " +
+                            "please go to settings and grant the required permissions",
                     fontSize = 16.sp,
                     color = MaterialTheme.colors.onSurface,
                     modifier = Modifier
                         .background(MaterialTheme.colors.background)
                         .padding(innerPadding)
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
                     textAlign = TextAlign.Center
                 )
         }
@@ -306,10 +297,10 @@ fun RequestPermissions(onSuccess: (() -> Unit)) {
 
 /** SensorList()
  * Main Function for sensor list, handles top level styling
- * Note this calls functions IT SHOULD NOT HANDLE INFORMATION DISPLAY INTERNALLY
- * If it does display information, it might cause A LOT of problems for us later on
+ * It should handle styling only, and call functions to handle page functionality
  *
  * @onBackPress: Action to be taken when you click to go back
+ * @return: Page of Sensors
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -348,8 +339,8 @@ fun SensorList(onBackPress: (() -> Unit)) {
                 GyrometerSensor()
                 AccelerometerSensor()
                 TemperatureSensor()
-                //BarometerSensor()
                 LightSensor()
+                //BarometerSensor()
                 androidx.compose.material3.Text("\n\n")
             }
         }
@@ -456,7 +447,7 @@ fun HeartRateSensor() {
     SensorButton(
         onclick = { heartRateSensorListener.toggleSensor() },
         image = Icons.Default.Favorite,
-        text = "Heart Rate",// ${sensorStatus.value} bpm"
+        text = "Heart Rate", //\n ${sensorStatus.value} bpm",
         buttonOn = buttonOn
     )
 }
@@ -563,7 +554,7 @@ fun GyrometerSensor() {
         onclick = { gyrometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_3d_rotation_24),
         text = "Gyrometer", /*+
-                " ${df.format(sensorStatus.value[0])}x" +
+                "\n ${df.format(sensorStatus.value[0])}x" +
                 " · ${df.format(sensorStatus.value[1])}y" +
                 " · ${df.format(sensorStatus.value[2])}z"*/
         buttonOn = buttonOn
@@ -672,7 +663,7 @@ fun AccelerometerSensor() {
         onclick = { accelerometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_waving_hand_24),
         text = "Accelerometer", /*+
-                " ${df.format(sensorStatus.value[0])}x" +
+                "\n ${df.format(sensorStatus.value[0])}x" +
                 " · ${df.format(sensorStatus.value[1])}y" +
                 " · ${df.format(sensorStatus.value[2])}z"*/
         buttonOn = buttonOn
@@ -779,7 +770,7 @@ fun TemperatureSensor() {
     SensorButton(
         onclick = { temperatureSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_thermostat_24),
-        text = "Temperature",// ${sensorStatus.value} °C"
+        text = "Temperature",//\n ${sensorStatus.value} °C"
         buttonOn = buttonOn
     )
 }
@@ -885,7 +876,7 @@ fun BarometerSensor() {
     SensorButton(
         onclick = { barometerSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_air_24),
-        text = "Barometer", // ${sensorStatus.value} hPa"
+        text = "Barometer", //\n ${sensorStatus.value} hPa"
         buttonOn = buttonOn
     )
 }
@@ -990,7 +981,7 @@ fun LightSensor() {
     SensorButton(
         onclick = { lightSensorListener.toggleSensor() },
         image = ImageVector.vectorResource(R.drawable.baseline_light_mode_24),
-        text = "Light",// ${sensorStatus.value} lx"
+        text = "Light",//\n ${sensorStatus.value} lx"
         buttonOn = buttonOn
     )
 }
@@ -1001,6 +992,7 @@ fun LightSensor() {
  * @onclick: onclick effect, should be a toggle sensor or equivalent
  * @image: Displayed image for the sensors symbol, should be a material3 ImageVector
  * @text: The text in the button
+ * @buttonOn: The colours of the button, they should reflect the state the sensor is in (on or off)
  *
  * @return Sensor Button
  */
@@ -1031,13 +1023,3 @@ fun SensorButton(onclick: () -> Unit, image: ImageVector, text: String, buttonOn
         }
     }
 }
-
-/** DefaultPreview()
- * It's the apps preview
- * Don't Worry about this, we'll change it when we need to
- */
-//@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
-//@Composable
-//fun DefaultPreview() {
-//    WearApp("Preview Android", 22)
-//}
