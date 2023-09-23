@@ -30,7 +30,12 @@ Make sure that your device output volume is set to a fairly low level before you
 --------------------------------------------------------------------------------
 
 
-The patch pulse_mockup.pd contains a mockup synth controlled by a 'pulse' input analagous to a heart rate input (in beats per minute).
+The patch pulse_mockup_one_file.pd contains a mockup synth controlled by a 'pulse' input analagous to a heart rate input (in beats per minute).
 The pulsing sound can be turned on or off, and a variable tempo/heart rate value can be sent to change the pulsing frequency.
 As well as this, a 'panic'/mute button is also included for disabling sound.
 Info on how the patch works and what it does is included in comments inside of the patch.
+
+Receiver inputs used in the batch:
+- appOnOff: toggles the audio on if a float value of 1.0 is sent. Toggles off if a float of 0.0 is sent.
+- appHeartRate: receives a float value of the heart rate - changes the pulse tempo based on this value.
+- appAccelerometer: receives a float value of the intensity/force used for an arm movement. Changes the volume/dynamics of the pulsing tone based on this value.
