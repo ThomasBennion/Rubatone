@@ -403,8 +403,12 @@ fun HeartRateSensor() {
         override fun onSensorChanged(event: SensorEvent) {
             if (event.sensor.type == Sensor.TYPE_HEART_RATE) {
                 if (sensorOn.value) {
-                    sensorStatus.value = event.values[0]
-                    sendHeartRateToPhone(sensorStatus.value)
+                    if (event.values[0] in 50.0..200.0){
+                        sensorStatus.value = event.values[0]
+                        sendHeartRateToPhone(sensorStatus.value)
+                    } else {
+                        buttonOn.value = disabledButton
+                    }
                 } else {
                     sensorStatus.value = 999.00F
                 }
@@ -726,8 +730,12 @@ fun TemperatureSensor() {
         override fun onSensorChanged(event: SensorEvent) {
             if (event.sensor.type == Sensor.TYPE_AMBIENT_TEMPERATURE) {
                 if (sensorOn.value) {
-                    sensorStatus.value = event.values[0]
-                    sendTemperatureToPhone(sensorStatus.value)
+                    if (event.values[0] in 0.0..55.0){
+                        sensorStatus.value = event.values[0]
+                        sendTemperatureToPhone(sensorStatus.value)
+                    } else {
+                        buttonOn.value = disabledButton
+                    }
                 } else {
                     sensorStatus.value = 999.00F
                 }
