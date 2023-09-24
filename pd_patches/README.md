@@ -38,7 +38,7 @@ Info on how the patch works and what it does is included in comments inside of t
 Receiver inputs used in the batch:
 - appOnOff: toggles the audio on if a float value of 1.0 is sent. Toggles off if a float of 0.0 is sent.
 - appHeartRate: receives a float value of the heart rate - changes the pulse tempo based on this value.
-    Accepts all values, but bounds them to the range [40, 200] BPM.
+    Accepts all values, but bounds them to the range [50, 200] BPM.
 - appAccelerometer: receives a float value of the intensity/force used for an arm movement. Changes the volume/dynamics of the pulsing tone based on this value.
     Currently configured to take any values but bounds them to the range 0.75 to 0.99, to give somewhat more subtle volume changes. Will likely need to tweak this and rescale input values, I'm not 100% sure what range these input values can take.
 - appGyrometer: receives a float value of the vertical position of the arm movement. Changes the pitch/frequency of the pulsing tone based on this value.
