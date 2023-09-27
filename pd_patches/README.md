@@ -43,7 +43,7 @@ Receiver inputs used in the batch:
 - appAccelerometer: receives a float value of the intensity/force used for an arm movement. Changes the volume/dynamics of the pulsing tone based on this value.
     Currently configured to take any values but bounds them to the range 0.75 to 0.99, to give somewhat more subtle volume changes. Will likely need to tweak this and rescale input values, I'm not 100% sure what range these input values can take.
 - appGyrometer: receives a float value of the vertical position of the arm movement. Changes the pitch/frequency of the pulsing tone based on this value.
-    Currently configured to take any values but bounds them to the range 261.63 to 1046.52, to give frequencies in this range (notes between C4 and C6). Will likely need to tweak this and rescale input values, I'm not 100% sure what range these input values can take.
+    Currently configured to take any values but bounds them to the range 60 to 84, to give pitches in this range (notes between C4 and C6). Will likely need to tweak this and rescale input values, I'm not 100% sure what range these input values can take.
 - appPitchControl: changes the form of pitch control being used. Has this behaviour when sent the following float values:
     - 0.0: Fully continuous pitch (not fixed to a scale/tuning)
     - 1.0: Discrete pitch (fixed to 12 tone tuning)
