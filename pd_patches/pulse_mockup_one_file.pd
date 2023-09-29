@@ -1,4 +1,4 @@
-#N canvas -417 211 1920 997 12;
+#N canvas 1863 1011 1920 997 12;
 #X obj 583 838 *~;
 #X obj 582 1483 dac~;
 #X msg 26 162 \; pd dsp \$1;
@@ -479,7 +479,7 @@
 #X connect 7 0 8 0;
 #X connect 8 0 2 0;
 #X restore 651 618 pd discrete;
-#N canvas 1821 -1027 1646 802 portamento 0;
+#N canvas 0 0 1284 681 portamento 0;
 #X obj 37 37 inlet;
 #X obj 37 226 outlet;
 #X floatatom 104 106 4 0 0 0 - - - 0;
