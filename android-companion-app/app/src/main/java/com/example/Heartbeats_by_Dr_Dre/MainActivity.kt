@@ -54,18 +54,24 @@ import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
-
-    // triggers when application tab is navigated off/ tabs switched/ phone screen locked
+    // Triggers when application tab is navigated off/ tabs switched/ phone screen locked
     override fun onPause() {
         // remove wearable listener when app is paused/navigated off, but not closed
         Wearable.getDataClient(this).removeListener(this)
 
-        // Pause playback by sending float value of 0.0f
+        // Toggle audio to stop by sending float value of 0.0 to Kortholt/PD patch
         kortholt.sendFloat("appOnOff", 0.0f)
 
-
         runBlocking {
-            delay(600)
+            /*
+            Allow a 5ms delay between toggling audio playback to stop, and stopping the audio
+            stream. When the audio playback is toggled to stop, this triggers the PD patch to
+            fade out the audio volume within 4ms. A 5ms delay should allow for the full fade out,
+            preventing any pops/clicks in the audio. If these pops/clicks are still apparent, the
+            delay time may need to be increased.
+             */
+            delay(5)
+            // After the delay, stop the audio stream
             kortholt.stopStream()
         }
 
@@ -77,21 +83,31 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         // add wearable listener when tab is resumed
         Wearable.getDataClient(this).addListener(this)
 
-        // Resume playback by sending float value of 1.0f
         runBlocking {
+            // Start the audio stream
             kortholt.startStream()
         }
+        // Send a float value of 1.0 to kortholt/PD patch to toggle audio playback on
         kortholt.sendFloat("appOnOff", 1.0f)
-
+        // TODO fix issue with audio automatically playing on startup
         super.onResume()
     }
 
+    /**
+     * Handles audio components when the app is closed completely (app instance is destroyed).
+     * Toggles the audio off, then stops the audio stream and closes the opened PD patch in
+     * Kortholt.
+     */
     override fun onDestroy() {
-        // Pause playback by sending float value of 0.0f
+        // Toggle audio to stop by sending float value of 0.0 to Kortholt/PD patch
         kortholt.sendFloat("appOnOff", 0.0f)
         // Stop audio stream and close patch
         runBlocking {
+            // Apply a 5ms delay to allow the PD patch to fade audio out (within 4ms)
+            delay(5)
+            // Stop the audio stream
             kortholt.stopStream()
+            // Close the opened PD patch
             kortholt.closePatch()
         }
         super.onDestroy()
@@ -127,8 +143,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 //    On create
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Load PD patch
+        // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
         lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
+        // TODO fix issue with audio automatically playing on startup
         setContent {
             MainCompanionAppLayout(localHeartRate)
         }
@@ -204,8 +221,14 @@ fun HeartRateMonitor(localHeartRate: Float) {
 
 
 /**
- * Controls the playback of the synth tone
- * (note on/off).
+ * Creates a button that can be used to turn the audio synthesis component on or off.
+ * When starting/stopping audio, a float value is sent to the PD patch via Kortholt to toggle the
+ * change. The audio stream must also be started/stopped by Kortholt.
+ * When turning audio off, a fade out is applied to the audio to mute it over a period of 4ms.
+ * This is applied so that there are no clicks/pops in the audio. Adding a delay of 5ms between
+ * toggling the audio off in the PD patch and closing the Kortholt audio stream should allow for
+ * the fade out to finish completely. If there are still pops/clicks occurring when the audio
+ * is toggled on/off, this delay amount may need to be increased slightly.
  */
 @Composable
 fun PlayControl(modifier: Modifier) {
@@ -213,52 +236,49 @@ fun PlayControl(modifier: Modifier) {
     val kortholt = remember { context.kortholt }
     val scope = rememberCoroutineScope()
 
-    // Store state for synth playback (initialise to false)
+    // Store state for audio playback (initialise to false - audio not playing on app startup)
     var isPlaying by rememberSaveable { mutableStateOf(false) }
 
-    //   call function to modify heart rate tempo in PD patch
-//    kortholt.sendFloat("appHeartRate", heartRate)
-
-
-    // play audio
+    // Play audio
     if (isPlaying) {
         runBlocking {
             // Start audio stream
             scope.launch { kortholt.startStream() }
             Log.d("K START", "Kortholt stream is starting")
         }
-        // Toggle playback in PD patch by sending float value of 1
+        // Toggle playback in PD patch by sending float value of 1.0
         kortholt.sendFloat("appOnOff", 1.0f)
-        // Change playback status after playback has been started
+        // Change playback status after playback has been started (within start/stop button)
     }
 
-    // Stop audio
+    // Stop audio (isPlaying = false)
     else {
-        // Toggle playback off in PD patch by sending float value of 0
-        // Change playback status after playback has been stopped
-        // isPlaying = false
-
+        // Toggle audio off in PD patch by sending float value of 0
         kortholt.sendFloat("appOnOff", 0.0f)
         runBlocking {
-            // Stop audio stream
             scope.launch {
-//                delay(600)
+                // Apply a 5ms delay to allow the PD patch to fade audio out (within 4ms)
+                delay(5)
+                // After the delay, stop the audio stream
                 kortholt.stopStream()
             }
             Log.d("K STOP", "Kortholt stream is stopping")
         }
-
+        // Change playback status after playback has started (within start/stop button)
     }
 
-    // Create a button
+    // Create a play/stop button
     ExtendedFloatingActionButton(modifier = modifier,
-        // isPlaying is current true, set to false, and vice versa
+        /*
+        If isPlaying is currently true, then set it to false (as the button has been clicked,
+        and audio will stop playing).
+        If isPlaying is currently false, then set it to true (as the button has been clicked,
+        and audio will start playing).
+         */
         onClick = {
             isPlaying = !isPlaying
-
-        // Play audio
             }) {
-        // Change the button label
+        // Change the button label once clicked
         if (!isPlaying) {
             // If stopped, set the button label to 'Play'
             Text(text = "play")
@@ -269,10 +289,24 @@ fun PlayControl(modifier: Modifier) {
     }
 }
 
+/**
+ * Sends the heart rate value currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The heart rate value is periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the tempo of a
+ * pulsing sine tone synth - faster heart rate corresponds to
+ * a faster tempo value.
+ *
+ * @param heartRate (float) user's heart rate (in Beats Per Minute).
+ *                  Valid wearable values are bounded to the range
+ *                  [50, 200] BPM. A value of 999 BPM is sent if the heart
+ *                  rate sensor is offline/disabled.
+ */
 @Composable
 fun TempoControl(heartRate: Float) {
     val context = LocalContext.current
     val kortholt = remember { context.kortholt }
-    //   call function to modify heart rate tempo in PD patch
+    // Call function to modify heart rate value/tempo in PD patch
     kortholt.sendFloat("appHeartRate", heartRate)
 }
