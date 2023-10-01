@@ -125,18 +125,18 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     rate sensor will cause the app to crash on a change in heart rate values.
      */
     // Accelerometer values for x, y, z axes:
-//    private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
+    private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
     // For temperature testing
-//    private var localTemp by mutableStateOf<Float>( 999.00F)
+    private var localTemp by mutableStateOf<Float>( 999.00F)
     // For light sensor testing
-//    private var localLight by mutableStateOf<Float>( 999.00F)
+    private var localLight by mutableStateOf<Float>( 999.00F)
     /*
     This was used to test if the gyro inputs functioned appropriately.
     Values can be retrieved from the sensor, but implementing them with the heart
     rate sensor will cause the app to crash on a change in heart rate values.
      */
     // Gyro values for x, y, z axes - testing
-//    private var localGyroValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
+    private var localGyroValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
 
     /* onDataChanged()
     * triggers when data is changed in the wearOS app
@@ -156,27 +156,46 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
                 // reassign all the state variables here
                 // Store the current heart rate value from the wearable within the app
-                localHeartRate = dataMap.getFloat("heart_rate")
+                val tempoHeartRate = dataMap.getFloat("heart_rate")
+                if (tempoHeartRate.toInt() != 0)
+                    localHeartRate = tempoHeartRate
                 /*
                 This was used to test if the accelerometer inputs functioned appropriately.
                 Values can be retrieved from the sensor, but implementing them with the heart
                 rate sensor will cause the app to crash on a change in heart rate values.
                  */
                 // Store the current accelerometer values
-//                localAccelValues = dataMap.getFloatArray("accelerometer")!!
-//                Log.d("CHANGED", "Accel values: [${localAccelValues[0]}, ${localAccelValues[1]}, ${localAccelValues[2]}]")
+                val tempoAccelValue: FloatArray? = dataMap.getFloatArray("accelerometer")
+                if (tempoAccelValue != null) {
+
+                    localAccelValues = tempoAccelValue
+                    Log.d(
+                        "CHANGED",
+                        "Accel values: [${localAccelValues[0]}, ${localAccelValues[1]}, ${localAccelValues[2]}]"
+                    )
+                }
+
                 // Testing if the light/temperature sensors work ok
-//                localTemp = dataMap.getFloat("temperature")
-//                Log.d("CHANGED", "Temperature: $localTemp degrees C")
-//                localLight = dataMap.getFloat("light")
-//                Log.d("CHANGED", "Light sensor: $localLight lux")
+                val tempoTemp = dataMap.getFloat("temperature")
+                if (tempoTemp.toInt() != 0) {
+                    localTemp = dataMap.getFloat("temperature")
+                    Log.d("CHANGED", "Temperature: $localTemp degrees C")
+                }
+                val tempoLight =dataMap.getFloat("light")
+                if (tempoLight.toInt() != 0) {
+                    localLight = tempoLight
+                    Log.d("CHANGED", "Light sensor: $localLight lux")
+                }
                 /*
                 This was used to test if the gyrometer inputs functioned appropriately.
                 Values can be retrieved from the gyro sensor, but implementing them with the heart
                 rate sensor will cause the app to crash on a change in heart rate values.
-                 */
-//                localGyroValues = dataMap.getFloatArray("gyrometer")!!
-//                Log.d("CHANGED", "Gyro values: [${localGyroValues[0]}, ${localGyroValues[1]}, ${localGyroValues[2]}]")
+                */
+                val tempoGyroValues: FloatArray? = dataMap.getFloatArray("gyrometer")
+                if (tempoGyroValues != null) {
+                    localGyroValues = tempoGyroValues
+                    Log.d("CHANGED", "Gyro values: [${localGyroValues[0]}, ${localGyroValues[1]}, ${localGyroValues[2]}]")
+                }
             }
         }
     }
@@ -236,7 +255,7 @@ fun MainCompanionAppLayout(localHeartRate: Float) { // Would also need to add ac
             TempoControl(localHeartRate)
 
             // Changes the music synth dynamics/volume
-//            DynamicsControl(localAccelValues)
+            //DynamicsControl(localAccelValues)
         }
 
     ) { innerPadding ->
@@ -376,26 +395,26 @@ rate sensor will cause the app to crash on a change in heart rate values.
  * @param accelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
  *                    Values of 999.00 are sent if the sensor is offline/disabled.
  */
-//@Composable
-//fun DynamicsControl(accelValues: FloatArray) {
-//    val context = LocalContext.current
-//    val kortholt = remember { context.kortholt }
-//
-//    Log.d("ACCEL", "Accelerometer values: [${accelValues[0]}, ${accelValues[1]}, ${accelValues[2]}]")
-//    var accelMagnitude = 999.00f
-//
-//    // If the sensor is offline/disabled, send a value of 999.00 directly to PD patch
-//    if (!accelValues.contentEquals(floatArrayOf(999.00f, 999.00f, 999.00f))) {
-//        // If the sensor is online:
-//        // Get the linear acceleration from the accelerometer data
-//        var linearAccelValues = getLinearAcceleration(accelValues)
-//        // Calculate the magnitude of the linear acceleration vectors
-//        accelMagnitude = getLinearAccelMagnitude(linearAccelValues)
-//    }
-//    Log.d("ACCEL", "PD input value: $accelMagnitude")
+@Composable
+fun DynamicsControl(accelValues: FloatArray) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+
+    Log.d("ACCEL", "Accelerometer values: [${accelValues[0]}, ${accelValues[1]}, ${accelValues[2]}]")
+    var accelMagnitude = 999.00f
+
+    // If the sensor is offline/disabled, send a value of 999.00 directly to PD patch
+    if (!accelValues.contentEquals(floatArrayOf(999.00f, 999.00f, 999.00f))) {
+        // If the sensor is online:
+        // Get the linear acceleration from the accelerometer data
+        var linearAccelValues = getLinearAcceleration(accelValues)
+        // Calculate the magnitude of the linear acceleration vectors
+        accelMagnitude = getLinearAccelMagnitude(linearAccelValues)
+    }
+    Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
-//    kortholt.sendFloat("appAccelerometer", accelMagnitude)
-//}
+    kortholt.sendFloat("appAccelerometer", accelMagnitude)
+}
 
 
 /**
@@ -417,31 +436,31 @@ rate sensor will cause the app to crash on a change in heart rate values.
  *                                  called if this is the case.
  * @return (float array) the linear acceleration values in the x, y, z axes (m/s^2)
  */
-//fun getLinearAcceleration(accelValues: FloatArray): FloatArray {
-//    /*
-//    "The code sample uses an alpha value of 0.8 for demonstration purposes.
-//    If you use this filtering method you may need to choose a different alpha value.
-//     In this example, alpha is calculated as t / (t + dT),
-//     where t is the low-pass filter's time-constant and
-//     dT is the event delivery rate."
-//     */
-//    val alpha: Float = 0.8f
-//    var gravity = floatArrayOf(0f, 0f, 0f)
-//    var linearAcceleration = floatArrayOf(0f, 0f, 0f)
-//
-//    // Isolate the force of gravity with a low-pass filter
-//    gravity[0] = alpha * gravity[0] + (1 - alpha) * accelValues[0]
-//    gravity[1] = alpha * gravity[1] + (1 - alpha) * accelValues[1]
-//    gravity[2] = alpha * gravity[2] + (1 - alpha) * accelValues[2]
-//
-//    // Remove the gravity contribution with a high-pass filter
-//    linearAcceleration[0] = accelValues[0] - gravity[0]
-//    linearAcceleration[1] = accelValues[1] - gravity[1]
-//    linearAcceleration[2] = accelValues[2] - gravity[2]
-//
-//    Log.d("ACCEL", "Linear acceleration values: [${linearAcceleration[0]}, ${linearAcceleration[1]}, ${linearAcceleration[2]}]")
-//    return linearAcceleration
-//}
+fun getLinearAcceleration(accelValues: FloatArray): FloatArray {
+    /*
+    "The code sample uses an alpha value of 0.8 for demonstration purposes.
+    If you use this filtering method you may need to choose a different alpha value.
+     In this example, alpha is calculated as t / (t + dT),
+     where t is the low-pass filter's time-constant and
+     dT is the event delivery rate."
+     */
+    val alpha: Float = 0.8f
+    var gravity = floatArrayOf(0f, 0f, 0f)
+    var linearAcceleration = floatArrayOf(0f, 0f, 0f)
+
+    // Isolate the force of gravity with a low-pass filter
+    gravity[0] = alpha * gravity[0] + (1 - alpha) * accelValues[0]
+    gravity[1] = alpha * gravity[1] + (1 - alpha) * accelValues[1]
+    gravity[2] = alpha * gravity[2] + (1 - alpha) * accelValues[2]
+
+    // Remove the gravity contribution with a high-pass filter
+    linearAcceleration[0] = accelValues[0] - gravity[0]
+    linearAcceleration[1] = accelValues[1] - gravity[1]
+    linearAcceleration[2] = accelValues[2] - gravity[2]
+
+    Log.d("ACCEL", "Linear acceleration values: [${linearAcceleration[0]}, ${linearAcceleration[1]}, ${linearAcceleration[2]}]")
+    return linearAcceleration
+}
 
 
 /**
@@ -455,10 +474,10 @@ rate sensor will cause the app to crash on a change in heart rate values.
  * @param linearAccelValues (float array) the linear acceleration values in the x, y, z axes (m/s^2)
  * @return (float) the magnitude of the given linear acceleration values
  */
-//fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
-//    var accelMagnitude = sqrt(linearAccelValues[0].pow(2) + linearAccelValues[1].pow(2) +
-//                                                                    linearAccelValues[2].pow(2))
-//    Log.d("ACCEL", "Linear acceleration magnitude: $accelMagnitude")
-//    return accelMagnitude
-//
-//}
+fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
+    var accelMagnitude = sqrt(linearAccelValues[0].pow(2) + linearAccelValues[1].pow(2) +
+                                                                    linearAccelValues[2].pow(2))
+    Log.d("ACCEL", "Linear acceleration magnitude: $accelMagnitude")
+    return accelMagnitude
+
+}
