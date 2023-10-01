@@ -119,22 +119,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     * Initialize all your state variables related to sensor data here
     * */
     private var localHeartRate by mutableStateOf<Float>( 999.00F) // heart rate
-    /*
-    This was used to test if the accelerometer inputs functioned appropriately.
-    Values can be retrieved from the sensor, but implementing them with the heart
-    rate sensor will cause the app to crash on a change in heart rate values.
-     */
     // Accelerometer values for x, y, z axes:
     private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
     // For temperature testing
     private var localTemp by mutableStateOf<Float>( 999.00F)
     // For light sensor testing
     private var localLight by mutableStateOf<Float>( 999.00F)
-    /*
-    This was used to test if the gyro inputs functioned appropriately.
-    Values can be retrieved from the sensor, but implementing them with the heart
-    rate sensor will cause the app to crash on a change in heart rate values.
-     */
     // Gyro values for x, y, z axes - testing
     private var localGyroValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
 
@@ -159,21 +149,19 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 val tempoHeartRate = dataMap.getFloat("heart_rate")
                 if (tempoHeartRate.toInt() != 0)
                     localHeartRate = tempoHeartRate
-                /*
-                This was used to test if the accelerometer inputs functioned appropriately.
-                Values can be retrieved from the sensor, but implementing them with the heart
-                rate sensor will cause the app to crash on a change in heart rate values.
-                 */
+
                 // Store the current accelerometer values
                 val tempoAccelValue: FloatArray? = dataMap.getFloatArray("accelerometer")
                 if (tempoAccelValue != null) {
-
                     localAccelValues = tempoAccelValue
-                    Log.d(
-                        "CHANGED",
-                        "Accel values: [${localAccelValues[0]}, ${localAccelValues[1]}, ${localAccelValues[2]}]"
-                    )
+                } else {
+                    // If accelerometer sensor outputs null values, send values of 0 to audio synthesis component
+                    localAccelValues = floatArrayOf(0.0f, 0.0f, 0.0f)
                 }
+                Log.d(
+                    "CHANGED",
+                    "Accel values: [${localAccelValues[0]}, ${localAccelValues[1]}, ${localAccelValues[2]}]"
+                )
 
                 // Testing if the light/temperature sensors work ok
                 val tempoTemp = dataMap.getFloat("temperature")
@@ -186,11 +174,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     localLight = tempoLight
                     Log.d("CHANGED", "Light sensor: $localLight lux")
                 }
-                /*
-                This was used to test if the gyrometer inputs functioned appropriately.
-                Values can be retrieved from the gyro sensor, but implementing them with the heart
-                rate sensor will cause the app to crash on a change in heart rate values.
-                */
+
+                // Store the current gyrometer values
                 val tempoGyroValues: FloatArray? = dataMap.getFloatArray("gyrometer")
                 if (tempoGyroValues != null) {
                     localGyroValues = tempoGyroValues
@@ -207,7 +192,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
         // TODO fix issue with audio automatically playing on startup
         setContent {
-            MainCompanionAppLayout(localHeartRate) // Would also need to add accelValues as an input param
+            MainCompanionAppLayout(localHeartRate, localAccelValues)
         }
     }
 }
@@ -217,10 +202,12 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
  * the structure is extremely likely to change after MVP is completed
  *
  * @param localHeartRate (float) the heart rate value currently stored by the app (in BPM)
+ * @param localAccelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
+ *  *                    Values of 999.00 are sent if the sensor is offline/disabled.
  * */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainCompanionAppLayout(localHeartRate: Float) { // Would also need to add accelValues as an input param
+fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -255,7 +242,7 @@ fun MainCompanionAppLayout(localHeartRate: Float) { // Would also need to add ac
             TempoControl(localHeartRate)
 
             // Changes the music synth dynamics/volume
-            //DynamicsControl(localAccelValues)
+            DynamicsControl(localAccelValues)
         }
 
     ) { innerPadding ->
@@ -377,11 +364,6 @@ fun TempoControl(heartRate: Float) {
     kortholt.sendFloat("appHeartRate", heartRate)
 }
 
-/*
-These methods were used to test if the accelerometer inputs functioned appropriately.
-Values can be retrieved from the sensor, but implementing them with the heart
-rate sensor will cause the app to crash on a change in heart rate values.
- */
 
 /**
  * Sends the accelerometer values currently stored in the companion app
