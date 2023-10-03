@@ -1,5 +1,6 @@
 package com.example.Heartbeats_by_Dr_Dre
 
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -50,9 +51,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.simno.kortholt.kortholt
+import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
@@ -91,7 +94,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
         // Send a float value of 1.0 to kortholt/PD patch to toggle audio playback on
         kortholt.sendFloat("appOnOff", 1.0f)
-        // TODO fix issue with audio automatically playing on startup
+        // TODO fix issue with audio automatically playing on startup (see DECO-38)
         super.onResume()
     }
 
@@ -116,19 +119,29 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     }
 
     /*
-    * Initialize all your state variables related to sensor data here
+    * Initialise the passive input sensors.
     * */
-    private var localHeartRate by mutableStateOf<Float>( 999.00F) // heart rate
-    // Accelerometer values for x, y, z axes:
-    private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
+    // Heart rate
+    private var localHeartRate by mutableStateOf<Float>( 999.00F)
     // For temperature testing
     private var localTemp by mutableStateOf<Float>( 999.00F)
     // For light sensor testing
     private var localLight by mutableStateOf<Float>( 999.00F)
-    // Gyro values for x, y, z axes - testing
-    private var localGyroValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
 
-    /* onDataChanged()
+    /*
+    Initialise the active input sensors and any required vars for their associated calculations/
+    value transformations.
+     */
+    // Accelerometer values for x, y, z axes:
+    private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
+
+    // Gyro values for x, y, z axes:
+    private var localGyroValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
+    // Store a timestamp for the last gyro value update into the app
+    var gyroTimestamp: Long = 0L
+
+    /**
+     *  onDataChanged()
     * triggers when data is changed in the wearOS app
     * this function will listen to all sensor data
     * */
@@ -178,9 +191,14 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 // Store the current gyrometer values
                 val tempoGyroValues: FloatArray? = dataMap.getFloatArray("gyrometer")
                 if (tempoGyroValues != null) {
+                    // Reassign the gyro values if a non-null value has been received
                     localGyroValues = tempoGyroValues
+                    // Set the timestamp for when the gyro values were saved into the app
+                    gyroTimestamp = System.nanoTime()
                     Log.d("CHANGED", "Gyro values: [${localGyroValues[0]}, ${localGyroValues[1]}, ${localGyroValues[2]}]")
+                    Log.d("CHANGED", "Gyro timestamp: $gyroTimestamp")
                 }
+
             }
         }
     }
@@ -190,9 +208,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         super.onCreate(savedInstanceState)
         // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
         lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
-        // TODO fix issue with audio automatically playing on startup
+        // TODO fix issue with audio automatically playing on startup (see DECO-38)
         setContent {
-            MainCompanionAppLayout(localHeartRate, localAccelValues)
+            MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp)
         }
     }
 }
@@ -203,11 +221,15 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
  *
  * @param localHeartRate (float) the heart rate value currently stored by the app (in BPM)
  * @param localAccelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
- *  *                    Values of 999.00 are sent if the sensor is offline/disabled.
+ *                         Values of 999.00 are sent if the sensor is offline/disabled.
+ * @param localGyroValues (float array) gyroscope sensor's values in the x, y, z axes (rads/s).
+ *                         Values of 999.00 are sent if the sensor is offline/disabled.
+ * @param gyroTimestamp (float) A timestamp for the last gyro sensor value update into the app.
  * */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray) {
+fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
+                           localGyroValues: FloatArray, gyroTimestamp: Long) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -243,6 +265,10 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray) 
 
             // Changes the music synth dynamics/volume
             DynamicsControl(localAccelValues)
+
+            // Changes the music synth pitch (0.0f - fully continuous)
+            val pitchControlType = 0.0f
+            PitchControl(localGyroValues, pitchControlType, gyroTimestamp)
         }
 
     ) { innerPadding ->
@@ -372,7 +398,8 @@ fun TempoControl(heartRate: Float) {
  * sensor data.
  * The value sent to the PD patch changes the volume/dynamics of a
  * pulsing sine tone synth - 'stronger' hand movements will correspond to a louder sound/stronger
- * dynamics.
+ * dynamics. If no new value is received/values of 0 acceleration are sent, the volume of the
+ * synth is implemented in the PD patch to ramp down to 0 (no sound) in 500ms.
  *
  * @param accelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
  *                    Values of 999.00 are sent if the sensor is offline/disabled.
@@ -462,4 +489,199 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
     Log.d("ACCEL", "Linear acceleration magnitude: $accelMagnitude")
     return accelMagnitude
 
+}
+
+
+/**
+ * Sends the gyro sensor values currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The gyro raw values are periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the pitch/frequency of a
+ * pulsing sine tone synth. The rotation vector of the gyro sensor is calculated and used to determine
+ * the rotation of the watch in the x axis, corresponding to vertical rotations of the arm
+ * if it was held directly in front of the user's body. These rotations should be in the range
+ * [-pi/2, pi/2], according to this documentation:
+ * https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
+ * Arm rotations pointing at an upwards angle should map to a higher pitch, and downwards angle arm
+ * rotations to a lower pitch. This should allow for a range of up to 2 octaves of different pitches
+ * within 12 TET (or within continuous pitch values in this range), dependant on the chosen pitch
+ * format. An arm rotation position roughly perpendicular to the body should correspond to the middle
+ * pitch/frequency in the given interval.
+ *
+ * NOTE: This seemed to be very unsatisfying to control on an emulator, with an inability to consistently
+ * move to pitch values or fluidly transition between them. Not sure if this is caused by issues in
+ * the implementation itself, or by the emulator.
+ *
+ * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-gyro
+ *
+ * @param gyroValues (float array) gyroscope sensor's values in the x, y, z axes (rads/s).
+ *                         Values of 999.00 are sent if the sensor is offline/disabled.
+ * @param pitchControlType (float) 0.0 - continuous pitch; 1.0 - pitch discretised to 12-TET;
+ *                                 2.0 - pitch discretised to 12-TET with portamento/pitch bends
+ *                                 in-between notes
+ * @param gyroTimestamp (float) A timestamp for the last gyro sensor value update into the app.
+ */
+@Composable
+fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp: Long) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+
+//    Log.d("GYRO", "Gyro values: [${gyroValues[0]}, ${gyroValues[1]}, ${gyroValues[2]}]")
+
+    // Stores the pitch rotation (rotation about the wearable's x axis)
+    var pitchRotation = 0.0f
+//    var height = 0.0f
+
+    // If the sensor is offline/disabled, send a value of 999.00 directly to PD patch
+    if (!gyroValues.contentEquals(floatArrayOf(999.00f, 999.00f, 999.00f))) {
+        // If the sensor is online:
+
+        // Get the current rotation vector based on the gyro sensor readings
+        var rotationCurrent = getGyroCurrentRotation(gyroValues, gyroTimestamp)
+
+        /*
+        Get the orientation values in each axis (azimuth/z, pitch/x, roll/y) based on current rotation.
+        The pitch (x axis rotation) values should be in the range [-pi/2, pi/2].
+        For more info about the values received, see here:
+        https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
+         */
+        val orientation = floatArrayOf(0.0f, 0.0f, 0.0f)
+        SensorManager.getOrientation(rotationCurrent, orientation)
+//        Log.d("GYRO", "Orientation: [${orientation[0]}, ${orientation[1]}, ${orientation[2]}]")
+        pitchRotation = orientation[1].toFloat()
+        // Tried calculating an approx. height value with the assumption that the user's arm is exactly 1m long - this didn't work better
+//        height = sin(pitchRotation.toDouble()).toFloat()
+    }
+
+//    Log.d("GYRO", "PD input value: $pitchRotation")
+    // Set the pitch control type in the PD patch
+    kortholt.sendFloat("appPitchControl", pitchControlType)
+    // Send the rotation value in the x axis (pitch) to the PD patch
+    kortholt.sendFloat("appGyrometer", pitchRotation)
+//    Log.d("GYRO", "Height: $height")
+}
+
+/**
+ *  Takes the input gyroscope values currently saved in the app, then converts these to a rotation
+ *  vector from which rotational motion data can be more appropriately retrieved.
+ *  Uses the previously stored 'current rotation vector' to determine what the new current rotation
+ *  vector will be, based on the change in values.
+ *
+ *  Another potential implementation for this would involve taking data directly from
+ *  Sensors.TYPE_ROTATION_VECTOR from the wearable. This may be more useful/accurate data that
+ *  potentially utilises sensor fusion to give more accurate readings/values that aren't as prone
+ *  to drift (drift is due to a single integration of sensor values). For more info,
+ *  see here: https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-rotate
+ *  @param gyroValues (float array) gyroscope sensor's values in the x, y, z axes (rad/s).
+ *                         Values of 999.00 are sent if the sensor is offline/disabled.
+ *  @param gyroTimestamp (long) A timestamp for the last gyro sensor value update into the app.
+ *  @return rotationCurrent (float array) the current rotation vector. For more info about the values
+ *                          in this var, see here:
+ *                          https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-rotate
+ *                          (this is for a built-in sensor fusion version of this method, but the
+ *                          values returned by this method are of the same format)
+ */
+@Composable
+fun getGyroCurrentRotation(gyroValues: FloatArray, gyroTimestamp: Long): FloatArray {
+    // Create a constant to convert nanoseconds to seconds.
+    val NS2S = 1.0f / 1000000000.0f
+    // The maximum allowable margin of error for the gyro's angular speed (may need to tweak this value)
+    var EPSILON = 0.1f
+
+    /*
+    This timestep's delta rotation (change in rotation) is multiplied by the current rotation
+    after computing it from the gyro sample data
+     */
+    val deltaRotationVector = floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f)
+    // Store a timestamp to compare the last recorded time with the most recent gyro value update time
+    var timestamp by rememberSaveable { mutableStateOf(0.0f) }
+    // Store the current rotation matrix values - these are initialised as a 3x3 identity matrix, then updated based on gyro changes
+    var rotationCurrent by rememberSaveable { mutableStateOf(floatArrayOf(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f)) }
+
+    if (timestamp != 0.0f) {
+        // Get the difference in time between the last changed timestamp and last gyro sensor update
+        val dT = (gyroTimestamp - timestamp) * NS2S
+        // Axis of the rotation sample, not normalized yet
+        var axisX: Float = gyroValues[0]
+        var axisY: Float = gyroValues[1]
+        var axisZ: Float = gyroValues[2]
+
+        // Calculate the angular speed of the sample
+        val omegaMagnitude: Float = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
+
+        /*
+        Normalize the rotation vector if it's big enough to get the axis
+        (that is, EPSILON should represent your maximum allowable margin of error)
+         */
+        if (omegaMagnitude > EPSILON) {
+            axisX /= omegaMagnitude
+            axisY /= omegaMagnitude
+            axisZ /= omegaMagnitude
+        }
+
+        /*
+        Integrate around this axis with the angular speed by the timestep
+        in order to get a delta rotation from this sample over the timestep
+        We will convert this axis-angle representation of the delta rotation
+        into a quaternion before turning it into the rotation matrix.
+         */
+        val thetaOverTwo: Float = omegaMagnitude * dT / 2.0f
+        val sinThetaOverTwo: Float = sin(thetaOverTwo)
+        val cosThetaOverTwo: Float = cos(thetaOverTwo)
+        deltaRotationVector[0] = sinThetaOverTwo * axisX
+        deltaRotationVector[1] = sinThetaOverTwo * axisY
+        deltaRotationVector[2] = sinThetaOverTwo * axisZ
+        deltaRotationVector[3] = cosThetaOverTwo
+    }
+//    Log.d("GYRO", "Delta rotation vector: [${deltaRotationVector[0]}, ${deltaRotationVector[1]}, ${deltaRotationVector[2]}, ${deltaRotationVector[3]}]")
+    // Reassign the stored timestamp to the most recent gyro sensor retrieval time
+    timestamp = gyroTimestamp.toFloat() ?: 0.0f
+    // Get the rotation matrix for the change in rotation
+    val deltaRotationMatrix = FloatArray(9) { 0f }
+    SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector)
+//    Log.d("GYRO", "Delta rotation matrix: [${deltaRotationMatrix[0]}, ${deltaRotationMatrix[1]}, ${deltaRotationMatrix[2]}, ${deltaRotationMatrix[3]}, ${deltaRotationMatrix[4]}, ${deltaRotationMatrix[5]}, ${deltaRotationMatrix[6]}, ${deltaRotationMatrix[7]}, ${deltaRotationMatrix[8]}]")
+    /*
+    Concatenate the delta rotation matrix we computed with the current rotation
+    in order to get the updated rotation (perform a matrix multiplication to get the updated rotation).
+    If the current rotation matrix is all zeros (hasn't been instantiated
+     */
+    rotationCurrent = matrixMultiplication3x3(rotationCurrent, deltaRotationMatrix)
+//    Log.d("GYRO", "Current rotation: [${rotationCurrent[0]}, ${rotationCurrent[1]}, ${rotationCurrent[2]}, ${rotationCurrent[3]}, ${rotationCurrent[4]}, ${rotationCurrent[5]}, ${rotationCurrent[6]}, ${rotationCurrent[7]}, ${rotationCurrent[8]}]")
+    return rotationCurrent
+}
+
+/**
+ * Multiply two one-dimensional 9-element arrays together
+ * (the arrays are intended to be interpreted as 3x3 matrices, but are stored as 1D arrays for ease
+ * of use/value access in Kotlin).
+ * I've hardcoded this in and it's terrible but in my defence this will only ever be used by the
+ * getGyroCurrentRotation method for the purpose of multiplying two matrices of specific dimensions
+ * together.
+ *
+ * @param array1: (float array) the first 3x3 matrix (9 element array)
+ * @param array2: (float array) the second 3x3 matrix (9 element array)
+ * @return (float array) the 3x3 matrix (9 element array) resulting from the matrix multiplication
+ */
+fun matrixMultiplication3x3(array1: FloatArray, array2: FloatArray): FloatArray {
+    var result = FloatArray(9) { 0f }
+
+    // First row
+    result[0] = array1[0]*array2[0] + array1[1]*array2[3] + array1[2]*array2[6]
+    result[1] = array1[0]*array2[1] + array1[1]*array2[4] + array1[2]*array2[7]
+    result[2] = array1[0]*array2[2] + array1[1]*array2[5] + array1[2]*array2[8]
+
+    // Second row
+    result[3] = array1[3]*array2[0] + array1[4]*array2[3] + array1[5]*array2[6]
+    result[4] = array1[3]*array2[1] + array1[4]*array2[4] + array1[5]*array2[7]
+    result[5] = array1[3]*array2[2] + array1[4]*array2[5] + array1[5]*array2[8]
+
+    // Third row
+    result[6] = array1[6]*array2[0] + array1[7]*array2[3] + array1[8]*array2[6]
+    result[7] = array1[6]*array2[1] + array1[7]*array2[4] + array1[8]*array2[7]
+    result[8] = array1[6]*array2[2] + array1[7]*array2[5] + array1[8]*array2[8]
+
+//    Log.d("GYRO", "Matmul result: [${result[0]}, ${result[1]}, ${result[2]}, ${result[3]}, ${result[4]}, ${result[5]}, ${result[6]}, ${result[7]}, ${result[8]}]")
+
+    return result
 }
