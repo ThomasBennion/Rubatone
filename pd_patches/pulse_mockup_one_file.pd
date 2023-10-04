@@ -1,62 +1,60 @@
 #N canvas -9 -9 1920 976 12;
-#X obj 583 608 *~;
-#X obj 582 923 dac~;
+#X obj 583 838 *~;
+#X obj 582 1523 dac~;
 #X msg 26 162 \; pd dsp \$1;
 #X obj 26 106 tgl 50 0 empty empty DSP_on_off 0 -10 0 12 -262130 -1
 -1 1 1;
-#X obj 583 530 osc~ 440;
-#X text 327 864 Send signal out to a DAC (Digital to Analogue Converter)
+#X obj 583 767 osc~ 440;
+#X text 327 1464 Send signal out to a DAC (Digital to Analogue Converter)
 to create audio signal output on your selected device, f 28;
 #X text 119 104 Turn DSP on/off (Digital Signal Processing) - this
 basically makes the sound happen when it's on \, and doesn't make it
 happen when it's off, f 28;
-#X text 355 520 Creates an oscillating cosine wave with frequency 440Hz
-, f 24;
-#X text 355 610 Multiply signals together;
-#X obj 1325 246 hsl 300 50 40 200 0 0 empty empty change_tempo 10 -10
-0 12 -232576 -1 -1 14950 1;
+#X text 355 840 Multiply signals together;
+#X obj 1325 336 hsl 300 50 50 200 0 0 empty empty change_tempo 10 -10
+0 12 -232576 -1 -1 27300 1;
 #X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate'
 (tempo value) in BPM - Creates a pulsing sine tone to the given tempo
 HOW TO USE IT? - Make sure your audio device is set up correctly in
 Media > Audio Settings... - Turn DSP on - Press the big green button
 to start/stop playback - Click and drag the big purple slider to change
 the pulse rate value (in the range 40-200 BPM), f 39;
-#X obj 659 132 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12
--204786 -1 -1 0 1;
-#X floatatom 1322 301 5 0 0 0 - - -;
-#X floatatom 1354 374 5 0 0 0 - - -;
-#X obj 1322 324 t b f;
-#X obj 1354 350 expr floor($f1);
-#X obj 659 328 metro 1 120 permin;
-#X obj 1322 42 loadbang;
-#X msg 1322 66 120;
-#X text 1358 65 Default start-up tempo is 120BPM;
-#X text 1470 350 Convert tempo to int value;
-#X obj 659 362 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
+#X obj 789 174 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12
+-204786 -1 -1 1 1;
+#X floatatom 1322 391 5 0 0 0 - - -;
+#X floatatom 1354 464 5 0 0 0 - - -;
+#X obj 1322 414 t b f;
+#X obj 1354 440 expr floor($f1);
+#X obj 789 328 metro 1 120 permin;
+#X obj 1333 213 loadbang;
+#X msg 1333 237 120;
+#X text 1369 236 Default start-up tempo is 120BPM;
+#X text 1470 440 Convert tempo to int value;
+#X obj 789 362 bng 19 250 50 0 empty empty empty 0 -10 0 12 -262144
 -1 -1;
-#X text 566 326 Create pulses to the given tempo (120BPM by default)
+#X text 691 332 Create pulses to the given tempo (120BPM by default)
 , f 11;
-#X msg 837 243 0.5;
-#X msg 873 243 1;
-#X text 919 242 beat length;
-#X floatatom 802 304 5 0 0 0 - - -;
-#X obj 802 280 expr 1/$f1;
-#X msg 802 243 2;
-#X obj 675 279 r tempo;
-#X obj 1354 397 s tempo;
-#X obj 873 218 loadbang;
-#X text 850 566 Trigger ADSR envelope;
-#X text 547 444 Toggle ADSR on;
-#X text 733 444 Toggle ADSR off after 2ms delay;
-#X msg 675 303 tempo \$1 permin;
-#X msg 659 445 1;
-#X msg 697 445 0;
-#X obj 697 420 del 2;
-#X obj 583 885 *~;
-#X obj 639 675 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 -204786
--1 -1 0 1;
-#X obj 639 630 r appOnOff;
-#X obj 1210 66 r appHeartRate;
+#X msg 967 243 0.5;
+#X msg 1003 243 1;
+#X text 1049 242 beat length;
+#X floatatom 932 304 5 0 0 0 - - -;
+#X obj 932 280 expr 1/$f1;
+#X msg 932 243 2;
+#X obj 805 279 r tempo;
+#X obj 1354 487 s tempo;
+#X obj 1003 218 loadbang;
+#X text 980 566 Trigger ADSR envelope;
+#X text 682 446 Toggle ADSR on;
+#X text 863 444 Toggle ADSR off after 2ms delay;
+#X msg 805 303 tempo \$1 permin;
+#X msg 789 445 1;
+#X msg 827 445 0;
+#X obj 827 420 del 2;
+#X obj 583 1485 *~;
+#X obj 639 1295 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 -204786
+-1 -1 1 1;
+#X obj 639 1210 r appOnOff;
+#X obj 1322 41 r appHeartRate;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
 #X obj 438 160 inlet;
@@ -157,15 +155,15 @@ send to line~, f 22;
 #X connect 58 0 6 0;
 #X connect 59 0 47 0;
 #X connect 60 0 46 0;
-#X restore 659 568 pd adsr;
+#X restore 789 568 pd adsr;
 #X f 26;
-#X obj 694 492 loadbang;
-#X msg 730 544 10;
-#X msg 766 544 100;
-#X msg 694 544 1;
+#X obj 824 492 loadbang;
+#X msg 860 544 10;
+#X msg 896 544 100;
+#X msg 824 544 1;
 #X obj 26 3 loadbang;
 #X msg 26 27 1;
-#N canvas -9 -9 1920 976 bound_values 0;
+#N canvas 0 28 1440 872 bound_values 0;
 #X floatatom 34 168 5 0 0 0 - - -;
 #X floatatom 34 275 5 0 0 0 - - -;
 #X floatatom 34 322 5 0 0 0 - - -;
@@ -198,23 +196,15 @@ If input_value < lower_bound \, returns the lower_bound.;
 #X connect 10 0 2 0;
 #X restore 1322 179 pd bound_values;
 #X floatatom 1322 153 5 0 0 0 - - -;
-#X floatatom 1322 203 5 0 0 0 - - -;
+#X floatatom 1322 263 5 0 0 0 - - -;
 #X floatatom 1424 153 5 0 0 0 - - -;
 #X msg 1424 129 200;
 #X floatatom 1373 153 5 0 0 0 - - -;
-#X msg 1373 129 40;
-#X text 1341 793 Handle continuous toggle of 1 value into the toggle
-;
-#X text 1403 820 Handle 999 values? set to 120 BPM?;
-#X text 1267 651 This may require very small delay between turning
-patch off and closing stream - see if required;
-#X text 1445 759 TODD HOWARD (TODO):;
-#X text 1471 142 Bound the heart rate values in the interval [40 \,
-200] BPM;
+#X text 1563 1066 TODD HOWARD (TODO):;
 #X obj 1373 96 loadbang;
-#X text 1192 43 HEART RATE INPUT:;
-#X text 636 606 TOGGLE ON/OFF INPUT:;
-#X msg 802 544 100;
+#X text 1304 18 HEART RATE INPUT:;
+#X text 636 1189 TOGGLE ON/OFF INPUT:;
+#X msg 932 544 100;
 #N canvas -32 228 1920 997 adsr 0;
 #X obj 129 120 inlet;
 #X obj 438 160 inlet;
@@ -315,86 +305,680 @@ send to line~, f 22;
 #X connect 58 0 6 0;
 #X connect 59 0 47 0;
 #X connect 60 0 46 0;
-#X restore 639 832 pd adsr;
+#X restore 639 1452 pd adsr;
 #X f 26;
-#X obj 674 756 loadbang;
-#X obj 659 58 r appOnOff;
-#X text 656 34 TOGGLE ON/OFF INPUT:;
-#X msg 746 808 0;
-#X msg 782 808 0;
-#X msg 674 808 0.95;
-#X msg 710 808 0;
-#X obj 659 82 del 1 0 msec;
-#X text 753 77 Can use this to add a slight delay to sync pulse start
+#X obj 674 1376 loadbang;
+#X obj 789 58 r appOnOff;
+#X text 786 34 TOGGLE ON/OFF INPUT:;
+#X msg 746 1428 0;
+#X msg 782 1428 0;
+#X msg 710 1428 0;
+#X obj 789 124 del 1 0 msec;
+#X text 883 119 Can use this to add a slight delay to sync pulse start
 with volume toggle on (if required), f 53;
-#X msg 838 544 3000;
-#X msg 818 808 4;
-#X text 1205 628 Have changed how on/off switch works - make immediate
+#X msg 818 1428 4;
+#X text 1418 881 Have changed how on/off switch works - make immediate
 volume off;
-#X text 853 809 Trigger ADSR envelope that turns audio on instantly
+#X text 853 1429 Trigger ADSR envelope that turns audio on instantly
 (0ms) and ramps audio signal from on to off (in 4ms), f 44;
-#X connect 0 0 39 0;
+#X obj 583 1178 *~;
+#X obj 791 959 vsl 50 120 0 1 0 0 empty empty dynamic_control 0 -9
+0 12 -262130 -1 -1 8600 1;
+#X floatatom 791 1087 5 0 0 0 - - -;
+#X obj 799 870 loadbang;
+#N canvas 0 28 1440 872 bound_values 0;
+#X floatatom 34 168 5 0 0 0 - - -;
+#X floatatom 34 275 5 0 0 0 - - -;
+#X floatatom 34 322 5 0 0 0 - - -;
+#X obj 34 345 outlet;
+#X obj 34 191 expr if ($f1 >= $f2 \, $f2 \, $f1);
+#X text 258 191 Only take values <= the upper bound value;
+#X text 257 299 Only take values >= the lower bound value;
+#X obj 34 112 inlet input_value;
+#X obj 241 162 inlet upper_bound;
+#X obj 241 271 inlet lower_bound;
+#X obj 34 298 expr if ($f1 <= $f2 \, $f2 \, $f1);
+#X text 813 55 Bounds the given input value to the specified interval
+range: [upper bound \, lower bound].;
+#X text 806 102 Args: input_value (float) - the value of the particular
+input (eg \, heart rate) upper_bound (float) - the upper bound to restrict
+the input value by. If input_value > upper_bound \, returns the upper_bound.
+lower_bound (float) - the lower bound to restrict the input value by.
+If input_value < lower_bound \, returns the lower_bound.;
+#X text 814 208 Returns: the bounded input value;
+#X text 241 247 LOWER BOUND (MIDDLE INLET):;
+#X text 241 138 UPPER BOUND (RIGHT INLET):;
+#X text 34 88 INPUT VALUE (LEFT INLET):;
+#X connect 0 0 4 0;
+#X connect 1 0 10 0;
+#X connect 2 0 3 0;
+#X connect 4 0 1 0;
+#X connect 7 0 0 0;
+#X connect 8 0 4 1;
+#X connect 9 0 10 1;
+#X connect 10 0 2 0;
+#X restore 791 769 pd bound_values;
+#X f 19;
+#X floatatom 791 743 5 0 0 0 - - -;
+#X floatatom 791 792 5 0 0 0 - - -;
+#X floatatom 921 743 5 0 0 0 - - -;
+#X floatatom 856 743 5 0 0 0 - - -;
+#X obj 856 691 loadbang;
+#X obj 791 627 r appAccelerometer;
+#X text 789 607 ACCELEROMETER INPUT:;
+#X obj 791 1135 line~;
+#X text 389 768 Creates an oscillating cosine wave with default frequency
+440Hz, f 24;
+#X obj 377 107 loadbang;
+#N canvas 0 28 1440 872 bound_values 0;
+#X floatatom 34 168 10 0 0 0 - - -;
+#X floatatom 34 275 10 0 0 0 - - -;
+#X floatatom 34 322 10 0 0 0 - - -;
+#X obj 34 345 outlet;
+#X obj 34 191 expr if ($f1 >= $f2 \, $f2 \, $f1);
+#X text 258 191 Only take values <= the upper bound value;
+#X text 257 299 Only take values >= the lower bound value;
+#X obj 34 112 inlet input_value;
+#X obj 241 162 inlet upper_bound;
+#X obj 241 271 inlet lower_bound;
+#X obj 34 298 expr if ($f1 <= $f2 \, $f2 \, $f1);
+#X text 813 55 Bounds the given input value to the specified interval
+range: [upper bound \, lower bound].;
+#X text 806 102 Args: input_value (float) - the value of the particular
+input (eg \, heart rate) upper_bound (float) - the upper bound to restrict
+the input value by. If input_value > upper_bound \, returns the upper_bound.
+lower_bound (float) - the lower bound to restrict the input value by.
+If input_value < lower_bound \, returns the lower_bound.;
+#X text 814 208 Returns: the bounded input value;
+#X text 241 247 LOWER BOUND (MIDDLE INLET):;
+#X text 241 138 UPPER BOUND (RIGHT INLET):;
+#X text 34 88 INPUT VALUE (LEFT INLET):;
+#X connect 0 0 4 0;
+#X connect 1 0 10 0;
+#X connect 2 0 3 0;
+#X connect 4 0 1 0;
+#X connect 7 0 0 0;
+#X connect 8 0 4 1;
+#X connect 9 0 10 1;
+#X connect 10 0 2 0;
+#X restore 366 43 pd bound_values;
+#X f 17;
+#X floatatom 366 17 7 0 0 0 - - -;
+#X floatatom 366 157 10 0 0 0 - - -;
+#X floatatom 482 17 5 0 0 0 - - -;
+#X floatatom 424 17 5 0 0 0 - - -;
+#X obj 424 -40 loadbang;
+#X text 361 -118 GYROMETER INPUT:;
+#X obj 366 -95 r appGyrometer;
+#X text 1490 1144 Do some major cleanup of this patch;
+#X text 1471 142 Bound the heart rate values in the interval [50 \,
+200] BPM;
+#X msg 1373 129 50;
+#X obj 457 434 vradio 19 1 0 3 empty empty pitch_controls 6 -10 0 12
+-204800 -1 -1 0;
+#X floatatom 457 509 5 0 0 0 - - -;
+#X text 485 434 Continuous;
+#X floatatom 583 734 5 0 0 0 - - -;
+#X text 839 82 Don't output repeated/same values;
+#X obj 789 82 change;
+#X text 689 1242 Don't output repeated/same values;
+#X obj 639 1242 change;
+#X obj 1322 70 change;
+#X text 1373 70 Don't output repeated/same values;
+#X obj 457 541 sel 0;
+#X msg 457 565 1;
+#X msg 489 565 0;
+#X obj 396 594 spigot;
+#X obj 369 193 hsl 200 50 60 84 0 0 empty empty change_pitch 2 -10
+0 12 -261682 -1 -1 9662 1;
+#X floatatom 366 286 5 0 0 0 - - -;
+#X obj 467 338 loadbang;
+#X msg 467 360 0;
+#X msg 586 565 1;
+#X msg 618 565 0;
+#X obj 526 594 spigot;
+#X obj 586 541 sel 1;
+#X msg 715 565 1;
+#X msg 747 565 0;
+#X obj 651 594 spigot;
+#X obj 715 541 sel 2;
+#N canvas 953 0 958 988 discrete 0;
+#X obj 37 37 inlet;
+#X floatatom 37 228 5 0 0 0 - - -;
+#X obj 37 251 outlet;
+#X text 35 273 OUTLET: Frequency of tone \, discretised to a note within
+12 TET, f 64;
+#X floatatom 37 115 5 0 0 0 - - -;
+#X text 105 149 Round the MIDI note to an integer;
+#N canvas 152 152 1920 956 round 0;
+#X obj 48 56 inlet;
+#X obj 75 100 i;
+#X obj 48 78 t f f;
+#X obj 75 122 t f f;
+#X obj 48 146 -;
+#X obj 48 168 > 0.5;
+#X obj 48 192 +;
+#X obj 48 237 outlet;
+#X text 568 23 Round a float to the nearest integer;
+#X text 65 569 Written by Alexandros Drymonitis;
+#X obj 48 214 change;
+#X text 62 586 Taken from: https://github.com/alexdrymonitis/miscellaneous_abstractions/blob/master/round_int.pd
+;
+#X text 45 259 OUTLET: Value rounded to the nearest integer;
+#X text 46 31 INLET: Input (unrounded) float value;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 1 1 0;
+#X connect 3 0 4 1;
+#X connect 3 1 6 1;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 6 0 10 0;
+#X connect 10 0 7 0;
+#X restore 37 148 pd round;
+#X floatatom 37 172 5 0 0 0 - - -;
+#X obj 37 195 mtof;
+#X text 36 14 INLET: Pitch of tone (MIDI note value);
+#X text 79 192 Convert the rounded MIDI note value to a frequency value
+(in Hz);
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 4 0 6 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 1 0;
+#X restore 526 618 pd discrete;
+#N canvas -31 387 1920 950 discrete 0;
+#X obj 37 37 inlet;
+#X floatatom 37 61 5 0 0 0 - - -;
+#X floatatom 37 228 5 0 0 0 - - -;
+#X obj 37 251 outlet;
+#X text 35 273 OUTLET: Frequency of tone \, discretised to a note within
+12 TET, f 64;
+#X text 105 149 Round the MIDI note to an integer;
+#N canvas 152 152 1920 956 round 0;
+#X obj 48 56 inlet;
+#X obj 75 100 i;
+#X obj 48 78 t f f;
+#X obj 75 122 t f f;
+#X obj 48 146 -;
+#X obj 48 168 > 0.5;
+#X obj 48 192 +;
+#X obj 48 237 outlet;
+#X text 568 23 Round a float to the nearest integer;
+#X text 65 569 Written by Alexandros Drymonitis;
+#X obj 48 214 change;
+#X text 62 586 Taken from: https://github.com/alexdrymonitis/miscellaneous_abstractions/blob/master/round_int.pd
+;
+#X text 45 259 OUTLET: Value rounded to the nearest integer;
+#X text 46 31 INLET: Input (unrounded) float value;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 1 1 0;
+#X connect 3 0 4 1;
+#X connect 3 1 6 1;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 6 0 10 0;
+#X connect 10 0 7 0;
+#X restore 37 148 pd round;
+#X floatatom 37 172 5 0 0 0 - - -;
+#X obj 37 195 mtof;
+#X text 36 14 INLET: Pitch of tone (MIDI note value);
+#X text 79 192 Convert the rounded MIDI note value to a frequency value
+(in Hz);
+#X connect 0 0 1 0;
+#X connect 1 0 6 0;
+#X connect 2 0 3 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 2 0;
+#X restore 651 618 pd discrete;
+#N canvas 0 0 1284 681 portamento 0;
+#X obj 37 37 inlet;
+#X obj 37 226 outlet;
+#X floatatom 104 106 4 0 0 0 - - -;
+#X text 35 13 INLET: Frequency (Hz) of tone \, fixed to 12 TET;
+#X obj 104 55 loadbang;
+#X text 35 248 OUTLET: Frequency (Hz) of tone \, fixed to 12 TET (after
+a portamento has been applied);
+#X obj 37 130 pack f 300;
+#X floatatom 37 178 5 0 0 0 - - -;
+#X floatatom 37 61 5 0 0 0 - - -;
+#X obj 37 154 line;
+#X msg 104 81 100;
+#X text 137 81 Set the portamento time to 100ms between note changes
+;
+#X text 129 154 Apply a transition from the previous discrete pitch
+value to the current discrete pitch value. This transition will cause
+a pitch slide up or down \, which finishes after 100ms.;
+#X connect 0 0 8 0;
+#X connect 2 0 6 1;
+#X connect 4 0 10 0;
+#X connect 6 0 9 0;
+#X connect 7 0 1 0;
+#X connect 8 0 6 0;
+#X connect 9 0 7 0;
+#X connect 10 0 2 0;
+#X restore 651 642 pd portamento;
+#X msg 968 544 300;
+#X text 484 471 12 TET w/ portamento, f 36;
+#X text 484 453 12 TET only;
+#X text 507 305 Don't output repeated/same values;
+#X obj 457 305 change;
+#X text 454 257 CHANGE PITCH CONTROL TYPE INPUT:;
+#X obj 457 281 r appPitchControl;
+#X floatatom 457 390 5 0 0 0 - - -;
+#N canvas 953 0 958 988 rescale_exptolin 0;
+#X obj 37 37 inlet;
+#X text 33 12 INLET: Pitch value (not scaled);
+#X text 33 402 OUTLET: Pitch value (re-scaled);
+#X obj 37 377 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 258 13 0 0 0 - - -;
+#X floatatom 37 305 13 0 0 0 - - -;
+#X obj 37 84 expr ($f1 - 261.23) / (1046.52 - 261.23);
+#X floatatom 37 108 13 0 0 0 - - -;
+#X text 328 84 Rescale the pitch value to be between 0 and 1;
+#X text 330 276 Rescale the pitch value from the range [0 \, 1] to
+the original pitch range;
+#X obj 37 281 expr ((1046.52 - 261.23) * $f1) + 261.23;
+#X text 511 126 If the value is the min value of 0.001 (~0.26Hz greater
+than the lower bound) \, assume that these values change linearly.
+;
+#X text 57 161 Otherwise \, perform a logarithmic conversion that scales
+the input from an exponential value mapping to a linear value mapping.
+;
+#X obj 37 135 expr if($f1 < 0.001 \, $f1 \, (ln($f1) - ln(0.001)) /
+(-1*ln(0.001))), f 66;
+#X text 57 207 Note: the ln(0.001) terms are safeguards that should
+prevent overflow of the returned value - this is for cases where the
+range position may be close to the endpoints.;
+#X connect 0 0 4 0;
+#X connect 4 0 7 0;
+#X connect 5 0 11 0;
+#X connect 6 0 3 0;
+#X connect 7 0 8 0;
+#X connect 8 0 14 0;
+#X connect 11 0 6 0;
+#X connect 14 0 5 0;
+#X restore 47 597 pd rescale_exptolin;
+#N canvas 953 0 958 988 rescale_exp2tolin 0;
+#X obj 37 37 inlet;
+#X text 33 12 INLET: Pitch value (not scaled);
+#X text 33 402 OUTLET: Pitch value (re-scaled);
+#X obj 37 377 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 258 13 0 0 0 - - -;
+#X floatatom 37 305 13 0 0 0 - - -;
+#X obj 37 84 expr ($f1 - 261.23) / (1046.52 - 261.23);
+#X floatatom 37 108 13 0 0 0 - - -;
+#X text 150 65 Rescale the pitch value to be between 0 and 1;
+#X text 330 276 Rescale the pitch value from the range [0 \, 1] to
+the original pitch range;
+#X obj 37 281 expr ((1046.52 - 261.23) * $f1) + 261.23;
+#X text 330 100 If the value is the min value of 0.001 (~0.26Hz greater
+than the lower bound) \, assume that these values change linearly.
+;
+#X text 56 161 Otherwise \, perform a logarithmic conversion that scales
+the input from an exponential value mapping to a linear value mapping.
+;
+#X text 57 207 Note: the ln(0.001) terms are safeguards that should
+prevent overflow of the returned value - this is for cases where the
+range position may be close to the endpoints.;
+#X obj 37 135 expr if($f1 < 0.001 \, $f1 \, ((ln($f1)/ln(2)) - (ln(0.001)/ln(2)))
+/ (-1*(ln(0.001)/ln(2)))), f 90;
+#X connect 0 0 4 0;
+#X connect 4 0 7 0;
+#X connect 5 0 11 0;
+#X connect 6 0 3 0;
+#X connect 7 0 8 0;
+#X connect 8 0 15 0;
+#X connect 11 0 6 0;
+#X connect 15 0 5 0;
+#X restore 47 622 pd rescale_exp2tolin;
+#N canvas 953 0 958 988 rescale_exp10tolin 0;
+#X obj 37 37 inlet;
+#X text 33 12 INLET: Pitch value (not scaled);
+#X text 33 402 OUTLET: Pitch value (re-scaled);
+#X obj 37 377 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 258 13 0 0 0 - - -;
+#X floatatom 37 305 13 0 0 0 - - -;
+#X obj 37 84 expr ($f1 - 261.23) / (1046.52 - 261.23);
+#X floatatom 37 108 13 0 0 0 - - -;
+#X text 150 65 Rescale the pitch value to be between 0 and 1;
+#X text 330 276 Rescale the pitch value from the range [0 \, 1] to
+the original pitch range;
+#X obj 37 281 expr ((1046.52 - 261.23) * $f1) + 261.23;
+#X text 330 100 If the value is the min value of 0.001 (~0.26Hz greater
+than the lower bound) \, assume that these values change linearly.
+;
+#X text 56 161 Otherwise \, perform a logarithmic conversion that scales
+the input from an exponential value mapping to a linear value mapping.
+;
+#X text 57 207 Note: the ln(0.001) terms are safeguards that should
+prevent overflow of the returned value - this is for cases where the
+range position may be close to the endpoints.;
+#X obj 37 135 expr if($f1 < 0.001 \, $f1 \, ((ln($f1)/ln(10)) - (ln(0.001)/ln(10)))
+/ (-1*(ln(0.001)/ln(10)))), f 93;
+#X connect 0 0 4 0;
+#X connect 4 0 7 0;
+#X connect 5 0 11 0;
+#X connect 6 0 3 0;
+#X connect 7 0 8 0;
+#X connect 8 0 15 0;
+#X connect 11 0 6 0;
+#X connect 15 0 5 0;
+#X restore 47 645 pd rescale_exp10tolin;
+#N canvas 953 0 958 988 rescale_lintoexp2 0;
+#X obj 37 37 inlet;
+#X text 33 12 INLET: Pitch value (not scaled);
+#X text 33 402 OUTLET: Pitch value (re-scaled);
+#X obj 37 377 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 258 13 0 0 0 - - -;
+#X floatatom 37 305 13 0 0 0 - - -;
+#X obj 37 84 expr ($f1 - 261.23) / (1046.52 - 261.23);
+#X floatatom 37 108 13 0 0 0 - - -;
+#X text 328 84 Rescale the pitch value to be between 0 and 1;
+#X text 330 276 Rescale the pitch value from the range [0 \, 1] to
+the original pitch range;
+#X obj 37 281 expr ((1046.52 - 261.23) * $f1) + 261.23;
+#X text 511 126 If the value is the min value of 0.001 (~0.26Hz greater
+than the lower bound) \, assume that these values change linearly.
+;
+#X text 57 161 Otherwise \, perform a logarithmic conversion that scales
+the input from an exponential value mapping to a linear value mapping.
+;
+#X text 57 207 Note: the ln(0.001) terms are safeguards that should
+prevent overflow of the returned value - this is for cases where the
+range position may be close to the endpoints.;
+#X obj 37 134 expr if($f1 < 0.001 \, 0 \, pow(2 \, ln(0.001) - ln(0.001)
+* $f1)), f 66;
+#X connect 0 0 4 0;
+#X connect 4 0 7 0;
+#X connect 5 0 11 0;
+#X connect 6 0 3 0;
+#X connect 7 0 8 0;
+#X connect 8 0 15 0;
+#X connect 11 0 6 0;
+#X connect 15 0 5 0;
+#X restore 47 669 pd rescale_lintoexp2;
+#X text 413 130 Default start-up frequency is A4 440Hz;
+#X msg 377 131 69;
+#X obj 396 565 r pitch;
+#X obj 526 565 r pitch;
+#X obj 651 565 r pitch;
+#N canvas -555 443 1920 997 continuous 0;
+#X obj 47 47 inlet;
+#X floatatom 47 238 5 0 0 0 - - -;
+#X obj 47 261 outlet;
+#X floatatom 47 182 5 0 0 0 - - -;
+#X obj 47 205 mtof;
+#X text 46 27 INLET: Pitch of tone (MIDI note value);
+#X text 89 202 Convert the MIDI note value to a frequency value (in
+Hz);
+#X text 45 283 OUTLET: Frequency of tone \, not discretized to a tuning/scale
+, f 64;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X restore 396 618 pd continuous;
+#X text 35 536 Ignore these for now - might use them for non-linear
+mapping/scaling later?, f 31;
+#X obj 366 319 s pitch;
+#X msg 674 1428 0.99;
+#X msg 856 719 0;
+#N canvas 898 19 958 988 rescale_exptolin 0;
+#X obj 37 37 inlet;
+#X obj 37 487 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 368 13 0 0 0 - - -;
+#X floatatom 37 415 13 0 0 0 - - -;
+#X floatatom 37 206 13 0 0 0 - - -;
+#X text 57 271 Otherwise \, perform a logarithmic conversion that scales
+the input from an exponential value mapping to a linear value mapping.
+;
+#X obj 37 245 expr if($f1 < 0.001 \, $f1 \, (ln($f1) - ln(0.001)) /
+(-1*ln(0.001))), f 66;
+#X text 57 317 Note: the ln(0.001) terms are safeguards that should
+prevent overflow of the returned value - this is for cases where the
+range position may be close to the endpoints.;
+#X text 272 174 Rescale the value to be between 0 and 1;
+#X text 33 12 INLET: Value (not scaled);
+#X text 511 236 If the value is the min value of 0.001 \, assume that
+these values change linearly.;
+#X obj 37 391 expr ((1 - 0) * $f1) + 0, f 30;
+#X text 33 512 OUTLET: Value (re-scaled);
+#X text 273 388 Rescale the value from the range [0 \, 1] to the original
+range;
+#X obj 140 79 inlet;
+#X text 137 56 INLET: Lower bound of values;
+#X obj 244 116 inlet;
+#X text 241 93 INLET: Upper bound of values;
+#X obj 37 174 expr ($f1 - $f2) / ($f3 - $f2);
+#X floatatom 140 103 5 0 0 0 - - -;
+#X floatatom 244 140 5 0 0 0 - - -;
+#X connect 0 0 2 0;
+#X connect 2 0 19 0;
+#X connect 3 0 12 0;
+#X connect 4 0 1 0;
+#X connect 5 0 7 0;
+#X connect 7 0 3 0;
+#X connect 12 0 4 0;
+#X connect 15 0 20 0;
+#X connect 17 0 21 0;
+#X connect 19 0 5 0;
+#X connect 20 0 19 1;
+#X connect 21 0 19 2;
+#X restore 791 814 pd rescale_exptolin;
+#X text 1470 1099 How to handle 999 values? If receiving this value
+\, should turn audio off;
+#X obj 124 441 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 124 461 s appOnOff;
+#X floatatom 791 921 5 0 0 0 - - -;
+#X text 937 775 Re-scale volume values to match human logarithmic perception
+of volume changes. Converts from an exponential mapping to a linear
+mapping of values in the range [0 \, 1]. This might be a bit too sensitive
+in the lower range of input values \, but this could be tweaked/changed.
+Hopefully this allows for you to create the loudest possible sound
+with minimal arm movement force.;
+#X text 958 719 Bound the linear acceleration magnitude to the range
+[0 \, 10];
+#X msg 921 719 10;
+#X msg 799 894 0.85;
+#X text 835 893 Default start-up value is 0.85;
+#X text 841 654 Don't output repeated/same values;
+#X obj 791 654 change;
+#X msg 791 1110 \$1 500;
+#X text 844 1115 Gradually applies amplitude change over 500ms to prevent
+audio clicks/pops and to make volume/dynamics changes feel more natural/fluid
+;
+#X text 1417 915 This will require very small delay between turning
+patch off and closing stream (>4 ms) - see what amt of delay is required.
+;
+#X text 493 67 Rescale the input to a range of MIDI note values between
+C4 (261.23Hz) and C6 (1046.52Hz), f 30;
+#X text 416 -69 Don't output repeated/same values;
+#X obj 366 -69 change;
+#N canvas 771 166 450 546 rescale_lin 0;
+#X obj 37 37 inlet;
+#X obj 37 487 outlet;
+#X floatatom 37 61 13 0 0 0 - - -;
+#X floatatom 37 368 13 0 0 0 - - -;
+#X floatatom 37 415 13 0 0 0 - - -;
+#X text 272 174 Rescale the value to be between 0 and 1;
+#X text 33 12 INLET: Value (not scaled);
+#X text 33 512 OUTLET: Value (re-scaled);
+#X obj 140 79 inlet;
+#X text 137 56 INLET: Lower bound of values;
+#X obj 244 116 inlet;
+#X text 241 93 INLET: Upper bound of values;
+#X obj 37 174 expr ($f1 - $f2) / ($f3 - $f2);
+#X floatatom 140 103 5 0 0 0 - - -;
+#X floatatom 244 140 5 0 0 0 - - -;
+#X text 273 388 Rescale the value from the range [0 \, 1] \, to a range
+of MIDI note values between C4 (261.23Hz) and C6 (1046.52Hz);
+#X obj 37 391 expr ((84 - 60) * $f1) + 60, f 30;
+#X connect 0 0 2 0;
+#X connect 2 0 12 0;
+#X connect 3 0 16 0;
+#X connect 4 0 1 0;
+#X connect 8 0 13 0;
+#X connect 10 0 14 0;
+#X connect 12 0 3 0;
+#X connect 13 0 12 1;
+#X connect 14 0 12 2;
+#X connect 16 0 4 0;
+#X restore 366 77 pd rescale_lin;
+#X f 17;
+#X text 490 -30 Bound the gyro rotation angle to the range [~-pi/4
+\, ~pi/4];
+#X msg 424 -7 -0.7853;
+#X msg 482 -7 0.7853;
+#X connect 0 0 72 0;
 #X connect 3 0 2 0;
 #X connect 4 0 0 0;
-#X connect 9 0 12 0;
-#X connect 11 0 16 0;
-#X connect 12 0 14 0;
-#X connect 13 0 30 0;
-#X connect 14 1 15 0;
-#X connect 15 0 13 0;
-#X connect 16 0 21 0;
-#X connect 17 0 18 0;
-#X connect 18 0 51 0;
-#X connect 21 0 36 0;
-#X connect 21 0 38 0;
-#X connect 23 0 27 0;
-#X connect 24 0 27 0;
-#X connect 26 0 16 1;
+#X connect 8 0 11 0;
+#X connect 10 0 15 0;
+#X connect 11 0 13 0;
+#X connect 12 0 29 0;
+#X connect 13 1 14 0;
+#X connect 14 0 12 0;
+#X connect 15 0 20 0;
+#X connect 16 0 17 0;
+#X connect 17 0 51 0;
+#X connect 20 0 35 0;
+#X connect 20 0 37 0;
+#X connect 22 0 26 0;
+#X connect 23 0 26 0;
+#X connect 25 0 15 1;
+#X connect 26 0 25 0;
 #X connect 27 0 26 0;
-#X connect 28 0 27 0;
-#X connect 29 0 35 0;
-#X connect 31 0 24 0;
-#X connect 35 0 16 0;
-#X connect 36 0 43 0;
-#X connect 37 0 43 0;
-#X connect 38 0 37 0;
-#X connect 39 0 1 0;
-#X connect 39 0 1 1;
-#X connect 40 0 66 0;
-#X connect 41 0 40 0;
-#X connect 42 0 51 0;
-#X connect 43 0 0 1;
-#X connect 44 0 76 0;
-#X connect 44 0 45 0;
-#X connect 44 0 46 0;
-#X connect 44 0 65 0;
-#X connect 44 0 47 0;
-#X connect 45 0 43 2;
-#X connect 46 0 43 3;
-#X connect 47 0 43 1;
-#X connect 48 0 49 0;
-#X connect 49 0 3 0;
-#X connect 50 0 52 0;
-#X connect 51 0 50 0;
-#X connect 52 0 9 0;
-#X connect 53 0 50 2;
-#X connect 54 0 53 0;
-#X connect 55 0 50 1;
-#X connect 56 0 55 0;
-#X connect 62 0 56 0;
-#X connect 62 0 54 0;
-#X connect 65 0 43 4;
-#X connect 66 0 39 0;
-#X connect 67 0 77 0;
-#X connect 67 0 73 0;
-#X connect 67 0 70 0;
-#X connect 67 0 71 0;
-#X connect 67 0 72 0;
-#X connect 68 0 74 0;
-#X connect 70 0 66 3;
-#X connect 71 0 66 4;
-#X connect 72 0 66 1;
-#X connect 73 0 66 2;
-#X connect 74 0 11 0;
-#X connect 76 0 43 5;
-#X connect 77 0 66 5;
+#X connect 28 0 34 0;
+#X connect 30 0 23 0;
+#X connect 34 0 15 0;
+#X connect 35 0 42 0;
+#X connect 36 0 42 0;
+#X connect 37 0 36 0;
+#X connect 38 0 1 0;
+#X connect 38 0 1 1;
+#X connect 39 0 60 0;
+#X connect 40 0 105 0;
+#X connect 41 0 106 0;
+#X connect 42 0 0 1;
+#X connect 43 0 44 0;
+#X connect 43 0 45 0;
+#X connect 43 0 59 0;
+#X connect 43 0 46 0;
+#X connect 43 0 127 0;
+#X connect 44 0 42 2;
+#X connect 45 0 42 3;
+#X connect 46 0 42 1;
+#X connect 47 0 48 0;
+#X connect 48 0 3 0;
+#X connect 49 0 51 0;
+#X connect 50 0 49 0;
+#X connect 51 0 8 0;
+#X connect 52 0 49 2;
+#X connect 53 0 52 0;
+#X connect 54 0 49 1;
+#X connect 56 0 97 0;
+#X connect 56 0 53 0;
+#X connect 59 0 42 4;
+#X connect 60 0 38 1;
+#X connect 61 0 69 0;
+#X connect 61 0 66 0;
+#X connect 61 0 64 0;
+#X connect 61 0 65 0;
+#X connect 61 0 147 0;
+#X connect 62 0 103 0;
+#X connect 64 0 60 3;
+#X connect 65 0 60 4;
+#X connect 66 0 60 2;
+#X connect 67 0 10 0;
+#X connect 69 0 60 5;
+#X connect 72 0 38 0;
+#X connect 73 0 74 0;
+#X connect 74 0 161 0;
+#X connect 75 0 157 0;
+#X connect 76 0 78 0;
+#X connect 77 0 76 0;
+#X connect 78 0 149 0;
+#X connect 79 0 76 2;
+#X connect 79 0 149 2;
+#X connect 80 0 76 1;
+#X connect 80 0 149 1;
+#X connect 81 0 148 0;
+#X connect 81 0 156 0;
+#X connect 82 0 160 0;
+#X connect 84 0 72 1;
+#X connect 86 0 140 0;
+#X connect 87 0 167 0;
+#X connect 88 0 87 0;
+#X connect 89 0 112 0;
+#X connect 90 0 87 2;
+#X connect 90 0 167 2;
+#X connect 91 0 87 1;
+#X connect 91 0 167 1;
+#X connect 92 0 169 0;
+#X connect 92 0 170 0;
+#X connect 94 0 166 0;
+#X connect 97 0 54 0;
+#X connect 98 0 99 0;
+#X connect 99 0 108 0;
+#X connect 99 0 119 0;
+#X connect 99 0 123 0;
+#X connect 101 0 4 0;
+#X connect 103 0 67 0;
+#X connect 105 0 39 0;
+#X connect 106 0 50 0;
+#X connect 108 0 109 0;
+#X connect 108 1 110 0;
+#X connect 109 0 111 1;
+#X connect 110 0 111 1;
+#X connect 111 0 144 0;
+#X connect 112 0 113 0;
+#X connect 113 0 146 0;
+#X connect 114 0 115 0;
+#X connect 115 0 134 0;
+#X connect 116 0 118 1;
+#X connect 117 0 118 1;
+#X connect 118 0 124 0;
+#X connect 119 0 116 0;
+#X connect 119 1 117 0;
+#X connect 120 0 122 1;
+#X connect 121 0 122 1;
+#X connect 122 0 125 0;
+#X connect 123 0 120 0;
+#X connect 123 1 121 0;
+#X connect 124 0 101 0;
+#X connect 125 0 126 0;
+#X connect 126 0 101 0;
+#X connect 127 0 42 5;
+#X connect 131 0 134 0;
+#X connect 133 0 131 0;
+#X connect 134 0 98 0;
+#X connect 140 0 89 0;
+#X connect 141 0 111 0;
+#X connect 142 0 118 0;
+#X connect 143 0 122 0;
+#X connect 144 0 101 0;
+#X connect 147 0 60 1;
+#X connect 148 0 80 0;
+#X connect 149 0 153 0;
+#X connect 151 0 152 0;
+#X connect 153 0 73 0;
+#X connect 156 0 79 0;
+#X connect 157 0 153 0;
+#X connect 160 0 77 0;
+#X connect 161 0 84 0;
+#X connect 166 0 88 0;
+#X connect 167 0 89 0;
+#X connect 169 0 91 0;
+#X connect 170 0 90 0;
