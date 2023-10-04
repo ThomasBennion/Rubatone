@@ -422,7 +422,7 @@ fun DynamicsControl(accelValues: FloatArray) {
     }
     Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
-    kortholt.sendFloat("appAccelerometer", accelMagnitude)
+//    kortholt.sendFloat("appAccelerometer", accelMagnitude)
 }
 
 
@@ -549,12 +549,13 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
         val orientation = floatArrayOf(0.0f, 0.0f, 0.0f)
         SensorManager.getOrientation(rotationCurrent, orientation)
 //        Log.d("GYRO", "Orientation: [${orientation[0]}, ${orientation[1]}, ${orientation[2]}]")
-        pitchRotation = orientation[1].toFloat()
+        // Invert the values so that motions between 0 and (-pi)/4 correspond to an increase in pitch, not a decrease
+        pitchRotation = orientation[1].toFloat() * -1
         // Tried calculating an approx. height value with the assumption that the user's arm is exactly 1m long - this didn't work better
 //        height = sin(pitchRotation.toDouble()).toFloat()
     }
 
-//    Log.d("GYRO", "PD input value: $pitchRotation")
+    Log.d("GYRO", "PD input value: $pitchRotation")
     // Set the pitch control type in the PD patch
     kortholt.sendFloat("appPitchControl", pitchControlType)
     // Send the rotation value in the x axis (pitch) to the PD patch
