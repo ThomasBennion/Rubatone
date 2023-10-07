@@ -1,6 +1,7 @@
 package com.example.Heartbeats_by_Dr_Dre
 
 import android.hardware.SensorManager
+import android.health.connect.datatypes.units.Temperature
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -144,7 +145,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     // Heart rate
     private var localHeartRate by mutableStateOf<Float>( 999.00F)
     // For temperature testing
-    private var localTemp by mutableStateOf<Float>( 999.00F)
+    private var localTemperature by mutableStateOf<Float>( 999.00F)
     // For light sensor testing
     private var localLight by mutableStateOf<Float>( 999.00F)
 
@@ -199,8 +200,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 // Testing if the light/temperature sensors work ok
                 val tempoTemp = dataMap.getFloat("temperature")
                 if (tempoTemp.toInt() != 0) {
-                    localTemp = dataMap.getFloat("temperature")
-                    Log.d("CHANGED", "Temperature: $localTemp degrees C")
+                    localTemperature = dataMap.getFloat("temperature")
+                    Log.d("CHANGED", "Temperature: $localTemperature degrees C")
                 }
                 val tempoLight =dataMap.getFloat("light")
                 if (tempoLight.toInt() != 0) {
@@ -229,14 +230,15 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
         lifecycleScope.launch { kortholt.openPatch(R.raw.passive_inputs_test, "passive_inputs_test.pd", extractZip = true) }
         setContent {
-            MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp)
+            MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp,
+                localLight, localTemperature)
         }
     }
 }
 
-/** MainCompanionAppLayout(localHeartRate)
+/**
  * Contains the main structure of the App
- * the structure is extremely likely to change after MVP is completed
+ * the structure is extremely likely to change after MVP (most valuable player) is completed
  *
  * @param localHeartRate (float) the heart rate value currently stored by the app (in BPM)
  * @param localAccelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
@@ -244,11 +246,18 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
  * @param localGyroValues (float array) gyroscope sensor's values in the x, y, z axes (rads/s).
  *                         Values of 999.00 are sent if the sensor is offline/disabled.
  * @param gyroTimestamp (float) A timestamp for the last gyro sensor value update into the app.
+ * @param localLight (float) measured light intensity (in lux).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 5000] lux. A value of 999 is sent if the sensor is offline/disabled.
+ * @param localTemperature (float) measured ambient temperature (in degrees Celsius).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 55] degrees Celsius. A value of 999 is sent if the sensor is offline/disabled.
  * */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
-                           localGyroValues: FloatArray, gyroTimestamp: Long) {
+                           localGyroValues: FloatArray, gyroTimestamp: Long,
+                           localLight: Float, localTemperature: Float) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -279,8 +288,14 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
             // turn sounds on/off
             PlayControl(modifier = Modifier)
 
-            // change music tempo
+            // Change music tempo
             TempoControl(localHeartRate)
+
+            // Send the light values to the PD patch
+            LightControl(localLight)
+
+            // Send the temperature values to the PD patch
+            TemperatureControl(localTemperature)
 
             // Changes the music synth dynamics/volume
             DynamicsControl(localAccelValues)
@@ -398,6 +413,7 @@ fun PlayControl(modifier: Modifier) {
     }
 }
 
+
 /**
  * Sends the heart rate value currently stored in the companion app
  * to the Kortholt/PD patch (for audio synthesis).
@@ -419,6 +435,49 @@ fun TempoControl(heartRate: Float) {
     Log.d("HEART_RATE", "Heart rate value sent to PD: $heartRate BPM")
     // Call function to modify heart rate value/tempo in PD patch
     kortholt.sendFloat("appHeartRate", heartRate)
+}
+
+
+/**
+ * Sends the ambient temperature sensor value currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The value is periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the state (structure and timbre) of the musical content.
+ * These values are both discretised and used as fully continuous values in various ways.
+ *
+ * @param temperature (float) measured ambient temperature (in degrees Celsius).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 55] degrees Celsius. A value of 999 is sent if the sensor is offline/disabled.
+ */
+@Composable
+fun TemperatureControl(temperature: Float) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    Log.d("TEMPERATURE", "Temperature value sent to PD: $temperature degrees Celsius")
+    // Call function to modify value in PD patch
+    kortholt.sendFloat("appTemperature", temperature)
+}
+
+/**
+ * Sends the measured light intensity sensor value currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The value is periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the state (structure and timbre) of the musical content.
+ * These values are both discretised and used as fully continuous values in various ways.
+ *
+ * @param light (float) measured light intensity (in lux).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 5000] lux. A value of 999 is sent if the sensor is offline/disabled.
+ */
+@Composable
+fun LightControl(light: Float) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    Log.d("LIGHT", "Light value sent to PD: $light Lux")
+    // Call function to modify value in PD patch
+    kortholt.sendFloat("appLight", light)
 }
 
 
