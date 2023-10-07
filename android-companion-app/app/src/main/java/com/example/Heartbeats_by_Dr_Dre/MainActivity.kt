@@ -59,8 +59,16 @@ import kotlin.math.sin
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
-    // Triggers when application tab is navigated off/ tabs switched/ phone screen locked
+    /**
+     * Triggers when application tab is navigated off/tabs switched/phone screen locked.
+     * Note: To prevent issues with audio playback, I have temporarily changed this method so that it
+     * destroys the app on pause, preventing it from running in the background.
+     * If you want to add the ability to handle stopping/restarting audio once an app has been moved
+     * to/from a background process, you might need to look into the issue with audio automatically
+     * playing on startup in the onResume method (see DECO-38).
+     */
     override fun onPause() {
+
         // remove wearable listener when app is paused/navigated off, but not closed
         Wearable.getDataClient(this).removeListener(this)
 
@@ -81,9 +89,21 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
 
         super.onPause()
+
+        // Close the app and completely remove the task (the app is not allowed to run in the background)
+        finishAndRemoveTask()
+
     }
 
-    // Triggers when application tab is navigated back to / resumed
+    /**
+     * Normally triggers when an application tab is navigated back to/resumed, and when the app is first
+     * initiated (after the onCreate method is called).
+     * Note: I've temporarily changed the implementation of the onPause method, which won't allow
+     * for the app to run in the background. Because of this, onResume is only currently called when
+     * initialising the app (after onCreate is called). If you want to include the ability for the app
+     * to run as a background process, you may need to look into some issues with the logic for audio
+     * playback in this method (see DECO-38).
+     */
     public override fun onResume() {
         // add wearable listener when tab is resumed
         Wearable.getDataClient(this).addListener(this)
@@ -92,9 +112,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             // Start the audio stream
             kortholt.startStream()
         }
-        // Send a float value of 1.0 to kortholt/PD patch to toggle audio playback on
-        kortholt.sendFloat("appOnOff", 1.0f)
-        // TODO fix issue with audio automatically playing on startup (see DECO-38)
+        // Send a float value of 0.0 to kortholt/PD patch to prevent audio from playing on startup
+        kortholt.sendFloat("appOnOff", 0.0f)
+
         super.onResume()
     }
 
@@ -207,8 +227,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
-        lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
-        // TODO fix issue with audio automatically playing on startup (see DECO-38)
+        lifecycleScope.launch { kortholt.openPatch(R.raw.passive_inputs_test, "passive_inputs_test.pd", extractZip = true) }
         setContent {
             MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp)
         }
@@ -269,6 +288,7 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
             // Changes the music synth pitch (0.0f - fully continuous)
             val pitchControlType = 0.0f
             PitchControl(localGyroValues, pitchControlType, gyroTimestamp)
+
         }
 
     ) { innerPadding ->
@@ -307,6 +327,13 @@ fun HeartRateMonitor(localHeartRate: Float) {
  * toggling the audio off in the PD patch and closing the Kortholt audio stream should allow for
  * the fade out to finish completely. If there are still pops/clicks occurring when the audio
  * is toggled on/off, this delay amount may need to be increased slightly.
+ *
+ * Note: I was noticing some issues with audio artefacts when pressing the play/pause buttons. I
+ * tried removing the starting/stopping of audio streams triggered by these buttons, and this seemed
+ * to fix the issue. As the audio stream is appropriately started/stopped when onPause and onResume
+ * are called, it is likely not necessary to re-initialise or destroy the audio stream each time
+ * the play/stop button is pressed. I've left the previous implementation commented out, in case
+ * we need to switch back to this previous implementation.
  */
 @Composable
 fun PlayControl(modifier: Modifier) {
@@ -319,20 +346,23 @@ fun PlayControl(modifier: Modifier) {
 
     // Play audio
     if (isPlaying) {
+        /*
         runBlocking {
             // Start audio stream
             scope.launch { kortholt.startStream() }
             Log.d("K START", "Kortholt stream is starting")
         }
+        */
         // Toggle playback in PD patch by sending float value of 1.0
         kortholt.sendFloat("appOnOff", 1.0f)
-        // Change playback status after playback has been started (within start/stop button)
+        // Change playback status after playback has been started (within the start/stop button)
     }
 
     // Stop audio (isPlaying = false)
     else {
         // Toggle audio off in PD patch by sending float value of 0
         kortholt.sendFloat("appOnOff", 0.0f)
+        /*
         runBlocking {
             scope.launch {
                 // Apply a 5ms delay to allow the PD patch to fade audio out (within 4ms)
@@ -342,6 +372,7 @@ fun PlayControl(modifier: Modifier) {
             }
             Log.d("K STOP", "Kortholt stream is stopping")
         }
+        */
         // Change playback status after playback has started (within start/stop button)
     }
 
