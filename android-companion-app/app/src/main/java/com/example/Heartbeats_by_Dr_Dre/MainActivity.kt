@@ -512,7 +512,7 @@ fun DynamicsControl(accelValues: FloatArray) {
     }
     Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
-//    kortholt.sendFloat("appAccelerometer", accelMagnitude)
+    kortholt.sendFloat("appAccelerometer", accelMagnitude)
 }
 
 
