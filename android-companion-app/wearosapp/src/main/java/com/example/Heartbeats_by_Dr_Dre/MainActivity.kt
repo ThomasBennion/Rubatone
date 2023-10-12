@@ -1010,7 +1010,7 @@ fun LightSensor() {
         }
 
         override fun onSensorChanged(event: SensorEvent) {
-            if (event.sensor.type == Sensor.TYPE_PRESSURE) {
+            if (event.sensor.type == Sensor.TYPE_LIGHT) {
                 if (sensorOn.value) {
                     sensorStatus.value = event.values[0]
                     sendLightToPhone(sensorStatus.value)
