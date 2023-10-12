@@ -184,6 +184,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 if (tempoHeartRate.toInt() != 0)
                     localHeartRate = tempoHeartRate
 
+
                 // Store the current accelerometer values
                 val tempoAccelValue: FloatArray? = dataMap.getFloatArray("accelerometer")
                 if (tempoAccelValue != null) {
@@ -301,7 +302,7 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
             DynamicsControl(localAccelValues)
 
             // Changes the music synth pitch (0.0f - fully continuous)
-            val pitchControlType = 0.0f
+            val pitchControlType = 2.0f
             PitchControl(localGyroValues, pitchControlType, gyroTimestamp)
 
         }
@@ -438,6 +439,7 @@ fun TempoControl(heartRate: Float) {
 }
 
 
+
 /**
  * Sends the ambient temperature sensor value currently stored in the companion app
  * to the Kortholt/PD patch (for audio synthesis).
@@ -513,6 +515,12 @@ fun DynamicsControl(accelValues: FloatArray) {
     Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
     kortholt.sendFloat("appAccelerometer", accelMagnitude)
+    /*
+    If you need to test the gyrometer/pitch controls only, and don't want to test the accelerometer/
+    dynamics, you can comment out the sendFloat method call above and send a hardcoded value (eg. 0.5)
+    instead.
+     */
+//    kortholt.sendFloat("appAccelerometer", 0.5f)
 }
 
 
@@ -522,18 +530,18 @@ fun DynamicsControl(accelValues: FloatArray) {
  * linear acceleration in each positional axis such that the force of gravity is ignored.
  *
  * For more information about this, see here:
- * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-accel
- *
- * Another potential implementation for this would involve taking data directly from
- * Sensors.TYPE_LINEAR_ACCELERATION from the wearable. This may be more useful/accurate data that
- * potentially utilises sensor fusion to give more accurate readings/values. For more info,
- * see here: https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-linear
+ *  * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-accel
+ *  *
+ *  * Another potential implementation for this would involve taking data directly from
+ *  * Sensors.TYPE_LINEAR_ACCELERATION from the wearable. This may be more useful/accurate data that
+ *  * potentially utilises sensor fusion to give more accurate readings/values. For more info,
+ *  * see here: https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-linear
  *
  * @param accelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
- *                                  Values of 999.0 are sent if the sensor is offline/disabled;
- *                                  however, implementation of this method assumes that it won't be
- *                                  called if this is the case.
- * @return (float array) the linear acceleration values in the x, y, z axes (m/s^2)
+ *  *                                  Values of 999.0 are sent if the sensor is offline/disabled;
+ *  *                                  however, implementation of this method assumes that it won't be
+ *  *                                  called if this is the case.
+ *  * @return (float array) the linear acceleration values in the x, y, z axes (m/s^2)
  */
 fun getLinearAcceleration(accelValues: FloatArray): FloatArray {
     /*
@@ -579,6 +587,7 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
     Log.d("ACCEL", "Linear acceleration magnitude: $accelMagnitude")
     return accelMagnitude
 
+
 }
 
 
@@ -589,19 +598,15 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
  * sensor data.
  * The value sent to the PD patch changes the pitch/frequency of a
  * pulsing sine tone synth. The rotation vector of the gyro sensor is calculated and used to determine
- * the rotation of the watch in the x axis, corresponding to vertical rotations of the arm
+ * the rotation of the watch in the y axis, corresponding to vertical rotations of the arm
  * if it was held directly in front of the user's body. These rotations should be in the range
- * [-pi/2, pi/2], according to this documentation:
+ * [-pi, pi], according to this documentation:
  * https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
  * Arm rotations pointing at an upwards angle should map to a higher pitch, and downwards angle arm
  * rotations to a lower pitch. This should allow for a range of up to 2 octaves of different pitches
  * within 12 TET (or within continuous pitch values in this range), dependant on the chosen pitch
  * format. An arm rotation position roughly perpendicular to the body should correspond to the middle
  * pitch/frequency in the given interval.
- *
- * NOTE: This seemed to be very unsatisfying to control on an emulator, with an inability to consistently
- * move to pitch values or fluidly transition between them. Not sure if this is caused by issues in
- * the implementation itself, or by the emulator.
  *
  * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-gyro
  *
@@ -632,15 +637,14 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
 
         /*
         Get the orientation values in each axis (azimuth/z, pitch/x, roll/y) based on current rotation.
-        The pitch (x axis rotation) values should be in the range [-pi/2, pi/2].
+        The roll (y axis rotation) values should be in the range [-pi, pi].
         For more info about the values received, see here:
         https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
          */
         val orientation = floatArrayOf(0.0f, 0.0f, 0.0f)
         SensorManager.getOrientation(rotationCurrent, orientation)
 //        Log.d("GYRO", "Orientation: [${orientation[0]}, ${orientation[1]}, ${orientation[2]}]")
-        // Invert the values so that motions between 0 and (-pi)/4 correspond to an increase in pitch, not a decrease
-        pitchRotation = orientation[1].toFloat() * -1
+        pitchRotation = orientation[2].toFloat()
         // Tried calculating an approx. height value with the assumption that the user's arm is exactly 1m long - this didn't work better
 //        height = sin(pitchRotation.toDouble()).toFloat()
     }
@@ -650,6 +654,7 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
     kortholt.sendFloat("appPitchControl", pitchControlType)
     // Send the rotation value in the x axis (pitch) to the PD patch
     kortholt.sendFloat("appGyrometer", pitchRotation)
+
 //    Log.d("GYRO", "Height: $height")
 }
 
