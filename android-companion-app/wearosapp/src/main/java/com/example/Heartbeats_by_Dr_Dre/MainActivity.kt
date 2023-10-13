@@ -61,6 +61,71 @@ import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CancellationException
 import java.text.DecimalFormat
 
+/**
+ * The ethics of the watch app:
+ * We consider ethics to be a crucial consideration when designing our watch app.
+ *
+ * The primary ethical considerations we consider to be our responsibility are:
+ * 1. Our responsibility for handling the users data in a way that ensures transparency and privacy for the user
+ * 2. Our duty of care in ensuring our users are not encouraged to hurt themselves when using our application
+ *
+ * Handling User Data:
+ * When handling user data, we need to ensure the user is aware of what data is being used
+ * and how is it being used. This should be done before the user interacts with the application
+ *
+ * - Google provides the user with a need for consent when using the bio-metric readings,
+ * we consider this acceptable.
+ * - We must make sure the data is not being used in ways that might conflict with what
+ * the user expects of us. To do this, we shouldn’t send any data to a “middleman”,
+ * instead we should have the data only be sent between the watch app and the phone app,
+ * therefore ensuring the data can’t be used for anything else.
+ * - The user expects us to use the data only for the functions they can perceive,
+ * (i.e. to create music). Therefore we shouldn’t require any sensor or private
+ * information for any other function of the app.
+ *
+ * Duty of Care:
+ * When it comes to our duty of care, we have to decide on the line between what is
+ * inhibiting the users ability to use the application, and what is encouraging undue
+ * risk to our users. This is also difficult as health is very dependent on a persons
+ * age and overall health status.
+ * Fortunately for us, the “Guiness Book of World Records” was faced with a very similar issue,
+ * so we can apply their reasoning to our own sensors.
+ *
+ * For our use case then, we shouldn’t encourage users to perform activities that are both:
+ * - Risky to a users long term health
+ * - An average, unqualified person could reasonably try and accomplish
+ *
+ * Heart Rate:
+ * While a person could artificially increase their heart rate to risky places via drugs,
+ * this is far more difficult to do then trying to lower your heart rate, which you can do by
+ * holding your breath for long periods of time
+ * (natural response of the body to preserve resources) therefore we should put much more
+ * stringent checks in place to ensure the user doesn’t lower their heart rate too low.
+ * Therefore, a heart rate in the range of 50 - 200 bpm is acceptable, while it is possible to
+ * have a heart rate lower then 50 and still be healthy (such as if you are an athlete) the
+ * risk of our users doing it by unhealthy means is too great.
+ *
+ * Gyrometer + Accelerometer:
+ * For these sensors, there’s not much need to put a limiter on them.
+ * While it is possible to permanently harm yourself by moving your hand too quickly,
+ * or in a awkward direction, we should just make sure the user isn’t “rewarded” in any way by
+ * doing this, and only make sensors in the safe range. Due to the nature of how these
+ * sensors output music, we can make it so putting your arm in an awkward position causes a
+ * negative value to be sent, therefore confusing and stopping the applications output.
+ *
+ * Temperature:
+ * Considering that this sensor is on the persons wrist, it is reasonable to assume
+ * that a healthy temperature to be on the persons skin is acceptable.
+ * Therefore, our range will be 0 – 55 degrees celcius, if the temperature goes lower or higher,
+ * it shouldn’t be affecting the watch’s sensor
+ *
+ * Light Sensor:
+ * There isn’t a need to put a limit on the light sensor. While it is possible to blind yourself
+ * with very bright lights, it is too difficult for the watch to track (as it depends on the
+ * amount of light your eyes are taking in). Therefore we do not consider miss-use of this sensor
+ * to fall into our duty of care, as we cannot control it.
+ * */
+
 class MainActivity : ComponentActivity() {
     /** onCreate()
      * Requests permission, handles startup activities, then starts the program
