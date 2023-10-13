@@ -66,8 +66,10 @@ import java.text.DecimalFormat
  * We consider ethics to be a crucial consideration when designing our watch app.
  *
  * The primary ethical considerations we consider to be our responsibility are:
- * 1. Our responsibility for handling the users data in a way that ensures transparency and privacy for the user
- * 2. Our duty of care in ensuring our users are not encouraged to hurt themselves when using our application
+ * 1. Our responsibility for handling the users data in a way that ensures transparency and
+ * privacy for the user
+ * 2. Our duty of care in ensuring our users are not encouraged to hurt themselves when
+ * using our application
  *
  * Handling User Data:
  * When handling user data, we need to ensure the user is aware of what data is being used
