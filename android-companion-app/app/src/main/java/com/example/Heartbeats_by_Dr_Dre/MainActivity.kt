@@ -4,6 +4,7 @@ import android.hardware.SensorManager
 import android.health.connect.datatypes.units.Temperature
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -233,7 +234,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setContent {
             MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp,
                 localLight, localTemperature)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+
     }
 }
 
