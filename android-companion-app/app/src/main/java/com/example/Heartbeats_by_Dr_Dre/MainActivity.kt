@@ -1,8 +1,10 @@
 package com.example.Heartbeats_by_Dr_Dre
 
 import android.hardware.SensorManager
+import android.health.connect.datatypes.units.Temperature
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -59,8 +61,16 @@ import kotlin.math.sin
 
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
-    // Triggers when application tab is navigated off/ tabs switched/ phone screen locked
+    /**
+     * Triggers when application tab is navigated off/tabs switched/phone screen locked.
+     * Note: To prevent issues with audio playback, I have temporarily changed this method so that it
+     * destroys the app on pause, preventing it from running in the background.
+     * If you want to add the ability to handle stopping/restarting audio once an app has been moved
+     * to/from a background process, you might need to look into the issue with audio automatically
+     * playing on startup in the onResume method (see DECO-38).
+     */
     override fun onPause() {
+
         // remove wearable listener when app is paused/navigated off, but not closed
         Wearable.getDataClient(this).removeListener(this)
 
@@ -81,9 +91,21 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
 
         super.onPause()
+
+        // Close the app and completely remove the task (the app is not allowed to run in the background)
+        finishAndRemoveTask()
+
     }
 
-    // Triggers when application tab is navigated back to / resumed
+    /**
+     * Normally triggers when an application tab is navigated back to/resumed, and when the app is first
+     * initiated (after the onCreate method is called).
+     * Note: I've temporarily changed the implementation of the onPause method, which won't allow
+     * for the app to run in the background. Because of this, onResume is only currently called when
+     * initialising the app (after onCreate is called). If you want to include the ability for the app
+     * to run as a background process, you may need to look into some issues with the logic for audio
+     * playback in this method (see DECO-38).
+     */
     public override fun onResume() {
         // add wearable listener when tab is resumed
         Wearable.getDataClient(this).addListener(this)
@@ -92,9 +114,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
             // Start the audio stream
             kortholt.startStream()
         }
-        // Send a float value of 1.0 to kortholt/PD patch to toggle audio playback on
-        kortholt.sendFloat("appOnOff", 1.0f)
-        // TODO fix issue with audio automatically playing on startup (see DECO-38)
+        // Send a float value of 0.0 to kortholt/PD patch to prevent audio from playing on startup
+        kortholt.sendFloat("appOnOff", 0.0f)
+
         super.onResume()
     }
 
@@ -124,7 +146,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     // Heart rate
     private var localHeartRate by mutableStateOf<Float>( 999.00F)
     // For temperature testing
-    private var localTemp by mutableStateOf<Float>( 999.00F)
+    private var localTemperature by mutableStateOf<Float>( 999.00F)
     // For light sensor testing
     private var localLight by mutableStateOf<Float>( 999.00F)
 
@@ -163,6 +185,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 if (tempoHeartRate.toInt() != 0)
                     localHeartRate = tempoHeartRate
 
+
                 // Store the current accelerometer values
                 val tempoAccelValue: FloatArray? = dataMap.getFloatArray("accelerometer")
                 if (tempoAccelValue != null) {
@@ -179,8 +202,8 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                 // Testing if the light/temperature sensors work ok
                 val tempoTemp = dataMap.getFloat("temperature")
                 if (tempoTemp.toInt() != 0) {
-                    localTemp = dataMap.getFloat("temperature")
-                    Log.d("CHANGED", "Temperature: $localTemp degrees C")
+                    localTemperature = dataMap.getFloat("temperature")
+                    Log.d("CHANGED", "Temperature: $localTemperature degrees C")
                 }
                 val tempoLight =dataMap.getFloat("light")
                 if (tempoLight.toInt() != 0) {
@@ -207,17 +230,19 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
-        lifecycleScope.launch { kortholt.openPatch(R.raw.pulse_mockup_one_file, "pulse_mockup_one_file.pd", extractZip = true) }
-        // TODO fix issue with audio automatically playing on startup (see DECO-38)
+        lifecycleScope.launch { kortholt.openPatch(R.raw.passive_inputs_test, "passive_inputs_test.pd", extractZip = true) }
         setContent {
-            MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp)
+            MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp,
+                localLight, localTemperature)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+
     }
 }
 
-/** MainCompanionAppLayout(localHeartRate)
+/**
  * Contains the main structure of the App
- * the structure is extremely likely to change after MVP is completed
+ * the structure is extremely likely to change after MVP (most valuable player) is completed
  *
  * @param localHeartRate (float) the heart rate value currently stored by the app (in BPM)
  * @param localAccelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
@@ -225,11 +250,18 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
  * @param localGyroValues (float array) gyroscope sensor's values in the x, y, z axes (rads/s).
  *                         Values of 999.00 are sent if the sensor is offline/disabled.
  * @param gyroTimestamp (float) A timestamp for the last gyro sensor value update into the app.
+ * @param localLight (float) measured light intensity (in lux).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 5000] lux. A value of 999 is sent if the sensor is offline/disabled.
+ * @param localTemperature (float) measured ambient temperature (in degrees Celsius).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 55] degrees Celsius. A value of 999 is sent if the sensor is offline/disabled.
  * */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
-                           localGyroValues: FloatArray, gyroTimestamp: Long) {
+                           localGyroValues: FloatArray, gyroTimestamp: Long,
+                           localLight: Float, localTemperature: Float) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -260,15 +292,22 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
             // turn sounds on/off
             PlayControl(modifier = Modifier)
 
-            // change music tempo
+            // Change music tempo
             TempoControl(localHeartRate)
+
+            // Send the light values to the PD patch
+            LightControl(localLight)
+
+            // Send the temperature values to the PD patch
+            TemperatureControl(localTemperature)
 
             // Changes the music synth dynamics/volume
             DynamicsControl(localAccelValues)
 
             // Changes the music synth pitch (0.0f - fully continuous)
-            val pitchControlType = 0.0f
+            val pitchControlType = 2.0f
             PitchControl(localGyroValues, pitchControlType, gyroTimestamp)
+
         }
 
     ) { innerPadding ->
@@ -307,6 +346,13 @@ fun HeartRateMonitor(localHeartRate: Float) {
  * toggling the audio off in the PD patch and closing the Kortholt audio stream should allow for
  * the fade out to finish completely. If there are still pops/clicks occurring when the audio
  * is toggled on/off, this delay amount may need to be increased slightly.
+ *
+ * Note: I was noticing some issues with audio artefacts when pressing the play/pause buttons. I
+ * tried removing the starting/stopping of audio streams triggered by these buttons, and this seemed
+ * to fix the issue. As the audio stream is appropriately started/stopped when onPause and onResume
+ * are called, it is likely not necessary to re-initialise or destroy the audio stream each time
+ * the play/stop button is pressed. I've left the previous implementation commented out, in case
+ * we need to switch back to this previous implementation.
  */
 @Composable
 fun PlayControl(modifier: Modifier) {
@@ -319,20 +365,23 @@ fun PlayControl(modifier: Modifier) {
 
     // Play audio
     if (isPlaying) {
+        /*
         runBlocking {
             // Start audio stream
             scope.launch { kortholt.startStream() }
             Log.d("K START", "Kortholt stream is starting")
         }
+        */
         // Toggle playback in PD patch by sending float value of 1.0
         kortholt.sendFloat("appOnOff", 1.0f)
-        // Change playback status after playback has been started (within start/stop button)
+        // Change playback status after playback has been started (within the start/stop button)
     }
 
     // Stop audio (isPlaying = false)
     else {
         // Toggle audio off in PD patch by sending float value of 0
         kortholt.sendFloat("appOnOff", 0.0f)
+        /*
         runBlocking {
             scope.launch {
                 // Apply a 5ms delay to allow the PD patch to fade audio out (within 4ms)
@@ -342,6 +391,7 @@ fun PlayControl(modifier: Modifier) {
             }
             Log.d("K STOP", "Kortholt stream is stopping")
         }
+        */
         // Change playback status after playback has started (within start/stop button)
     }
 
@@ -367,6 +417,7 @@ fun PlayControl(modifier: Modifier) {
     }
 }
 
+
 /**
  * Sends the heart rate value currently stored in the companion app
  * to the Kortholt/PD patch (for audio synthesis).
@@ -388,6 +439,50 @@ fun TempoControl(heartRate: Float) {
     Log.d("HEART_RATE", "Heart rate value sent to PD: $heartRate BPM")
     // Call function to modify heart rate value/tempo in PD patch
     kortholt.sendFloat("appHeartRate", heartRate)
+}
+
+
+
+/**
+ * Sends the ambient temperature sensor value currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The value is periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the state (structure and timbre) of the musical content.
+ * These values are both discretised and used as fully continuous values in various ways.
+ *
+ * @param temperature (float) measured ambient temperature (in degrees Celsius).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 55] degrees Celsius. A value of 999 is sent if the sensor is offline/disabled.
+ */
+@Composable
+fun TemperatureControl(temperature: Float) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    Log.d("TEMPERATURE", "Temperature value sent to PD: $temperature degrees Celsius")
+    // Call function to modify value in PD patch
+    kortholt.sendFloat("appTemperature", temperature)
+}
+
+/**
+ * Sends the measured light intensity sensor value currently stored in the companion app
+ * to the Kortholt/PD patch (for audio synthesis).
+ * The value is periodically updated from wearable
+ * sensor data.
+ * The value sent to the PD patch changes the state (structure and timbre) of the musical content.
+ * These values are both discretised and used as fully continuous values in various ways.
+ *
+ * @param light (float) measured light intensity (in lux).
+ *                  Valid wearable values are bounded to the range
+ *                  [0, 5000] lux. A value of 999 is sent if the sensor is offline/disabled.
+ */
+@Composable
+fun LightControl(light: Float) {
+    val context = LocalContext.current
+    val kortholt = remember { context.kortholt }
+    Log.d("LIGHT", "Light value sent to PD: $light Lux")
+    // Call function to modify value in PD patch
+    kortholt.sendFloat("appLight", light)
 }
 
 
@@ -422,7 +517,13 @@ fun DynamicsControl(accelValues: FloatArray) {
     }
     Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
-//    kortholt.sendFloat("appAccelerometer", accelMagnitude)
+    kortholt.sendFloat("appAccelerometer", accelMagnitude)
+    /*
+    If you need to test the gyrometer/pitch controls only, and don't want to test the accelerometer/
+    dynamics, you can comment out the sendFloat method call above and send a hardcoded value (eg. 0.5)
+    instead.
+     */
+//    kortholt.sendFloat("appAccelerometer", 0.5f)
 }
 
 
@@ -432,18 +533,18 @@ fun DynamicsControl(accelValues: FloatArray) {
  * linear acceleration in each positional axis such that the force of gravity is ignored.
  *
  * For more information about this, see here:
- * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-accel
- *
- * Another potential implementation for this would involve taking data directly from
- * Sensors.TYPE_LINEAR_ACCELERATION from the wearable. This may be more useful/accurate data that
- * potentially utilises sensor fusion to give more accurate readings/values. For more info,
- * see here: https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-linear
+ *  * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-accel
+ *  *
+ *  * Another potential implementation for this would involve taking data directly from
+ *  * Sensors.TYPE_LINEAR_ACCELERATION from the wearable. This may be more useful/accurate data that
+ *  * potentially utilises sensor fusion to give more accurate readings/values. For more info,
+ *  * see here: https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-linear
  *
  * @param accelValues (float array) accelerometer's acceleration values in the x, y, z axes (m/s^2).
- *                                  Values of 999.0 are sent if the sensor is offline/disabled;
- *                                  however, implementation of this method assumes that it won't be
- *                                  called if this is the case.
- * @return (float array) the linear acceleration values in the x, y, z axes (m/s^2)
+ *  *                                  Values of 999.0 are sent if the sensor is offline/disabled;
+ *  *                                  however, implementation of this method assumes that it won't be
+ *  *                                  called if this is the case.
+ *  * @return (float array) the linear acceleration values in the x, y, z axes (m/s^2)
  */
 fun getLinearAcceleration(accelValues: FloatArray): FloatArray {
     /*
@@ -489,6 +590,7 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
     Log.d("ACCEL", "Linear acceleration magnitude: $accelMagnitude")
     return accelMagnitude
 
+
 }
 
 
@@ -499,19 +601,15 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
  * sensor data.
  * The value sent to the PD patch changes the pitch/frequency of a
  * pulsing sine tone synth. The rotation vector of the gyro sensor is calculated and used to determine
- * the rotation of the watch in the x axis, corresponding to vertical rotations of the arm
+ * the rotation of the watch in the y axis, corresponding to vertical rotations of the arm
  * if it was held directly in front of the user's body. These rotations should be in the range
- * [-pi/2, pi/2], according to this documentation:
+ * [-pi, pi], according to this documentation:
  * https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
  * Arm rotations pointing at an upwards angle should map to a higher pitch, and downwards angle arm
  * rotations to a lower pitch. This should allow for a range of up to 2 octaves of different pitches
  * within 12 TET (or within continuous pitch values in this range), dependant on the chosen pitch
  * format. An arm rotation position roughly perpendicular to the body should correspond to the middle
  * pitch/frequency in the given interval.
- *
- * NOTE: This seemed to be very unsatisfying to control on an emulator, with an inability to consistently
- * move to pitch values or fluidly transition between them. Not sure if this is caused by issues in
- * the implementation itself, or by the emulator.
  *
  * https://developer.android.com/guide/topics/sensors/sensors_motion#sensors-motion-gyro
  *
@@ -542,15 +640,14 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
 
         /*
         Get the orientation values in each axis (azimuth/z, pitch/x, roll/y) based on current rotation.
-        The pitch (x axis rotation) values should be in the range [-pi/2, pi/2].
+        The roll (y axis rotation) values should be in the range [-pi, pi].
         For more info about the values received, see here:
         https://developer.android.com/reference/android/hardware/SensorManager#getOrientation(float[],%20float[])
          */
         val orientation = floatArrayOf(0.0f, 0.0f, 0.0f)
         SensorManager.getOrientation(rotationCurrent, orientation)
 //        Log.d("GYRO", "Orientation: [${orientation[0]}, ${orientation[1]}, ${orientation[2]}]")
-        // Invert the values so that motions between 0 and (-pi)/4 correspond to an increase in pitch, not a decrease
-        pitchRotation = orientation[1].toFloat() * -1
+        pitchRotation = orientation[2].toFloat()
         // Tried calculating an approx. height value with the assumption that the user's arm is exactly 1m long - this didn't work better
 //        height = sin(pitchRotation.toDouble()).toFloat()
     }
@@ -560,6 +657,7 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
     kortholt.sendFloat("appPitchControl", pitchControlType)
     // Send the rotation value in the x axis (pitch) to the PD patch
     kortholt.sendFloat("appGyrometer", pitchRotation)
+
 //    Log.d("GYRO", "Height: $height")
 }
 

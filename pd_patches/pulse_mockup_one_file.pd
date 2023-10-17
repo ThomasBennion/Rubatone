@@ -12,7 +12,7 @@ basically makes the sound happen when it's on \, and doesn't make it
 happen when it's off, f 28;
 #X text 355 840 Multiply signals together;
 #X obj 1325 336 hsl 300 50 50 200 0 0 empty empty change_tempo 10 -10
-0 12 -232576 -1 -1 27300 1;
+0 12 -232576 -1 -1 13953 1;
 #X text 17 249 WHAT DOES THIS PATCH DO? - Takes a given 'pulse rate'
 (tempo value) in BPM - Creates a pulsing sine tone to the given tempo
 HOW TO USE IT? - Make sure your audio device is set up correctly in
@@ -20,7 +20,7 @@ Media > Audio Settings... - Turn DSP on - Press the big green button
 to start/stop playback - Click and drag the big purple slider to change
 the pulse rate value (in the range 40-200 BPM), f 39;
 #X obj 789 174 tgl 75 0 empty empty start_or_stop_pulse 7 -10 0 12
--204786 -1 -1 1 1;
+-204786 -1 -1 0 1;
 #X floatatom 1322 391 5 0 0 0 - - -;
 #X floatatom 1354 464 5 0 0 0 - - -;
 #X obj 1322 414 t b f;
@@ -52,7 +52,7 @@ the pulse rate value (in the range 40-200 BPM), f 39;
 #X obj 827 420 del 2;
 #X obj 583 1485 *~;
 #X obj 639 1295 tgl 75 0 empty empty turn_audio_on_off 5 -10 0 12 -204786
--1 -1 1 1;
+-1 -1 0 1;
 #X obj 639 1210 r appOnOff;
 #X obj 1322 41 r appHeartRate;
 #N canvas -32 228 1920 997 adsr 0;
@@ -323,7 +323,7 @@ volume off;
 (0ms) and ramps audio signal from on to off (in 4ms), f 44;
 #X obj 583 1178 *~;
 #X obj 791 959 vsl 50 120 0 1 0 0 empty empty dynamic_control 0 -9
-0 12 -262130 -1 -1 8600 1;
+0 12 -262130 -1 -1 10115 1;
 #X floatatom 791 1087 5 0 0 0 - - -;
 #X obj 799 870 loadbang;
 #N canvas 0 28 1440 872 bound_values 0;
@@ -430,7 +430,7 @@ If input_value < lower_bound \, returns the lower_bound.;
 #X msg 489 565 0;
 #X obj 396 594 spigot;
 #X obj 369 193 hsl 200 50 60 84 0 0 empty empty change_pitch 2 -10
-0 12 -261682 -1 -1 9662 1;
+0 12 -261682 -1 -1 7462 1;
 #X floatatom 366 286 5 0 0 0 - - -;
 #X obj 467 338 loadbang;
 #X msg 467 360 0;
@@ -712,7 +712,7 @@ range position may be close to the endpoints.;
 #X obj 396 565 r pitch;
 #X obj 526 565 r pitch;
 #X obj 651 565 r pitch;
-#N canvas -555 443 1920 997 continuous 0;
+#N canvas -285 413 1920 997 continuous 0;
 #X obj 47 47 inlet;
 #X floatatom 47 238 5 0 0 0 - - -;
 #X obj 47 261 outlet;
@@ -778,7 +778,7 @@ range;
 #X restore 791 814 pd rescale_exptolin;
 #X text 1470 1099 How to handle 999 values? If receiving this value
 \, should turn audio off;
-#X obj 124 441 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+#X obj 124 441 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
 #X obj 124 461 s appOnOff;
 #X floatatom 791 921 5 0 0 0 - - -;
