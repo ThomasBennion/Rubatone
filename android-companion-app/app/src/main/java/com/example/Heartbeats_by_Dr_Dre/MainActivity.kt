@@ -59,6 +59,117 @@ import kotlin.math.sqrt
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
+
+/**
+ * The ethics of the phone app:
+ *
+ * The primary ethical considerations were:
+ * 1. Our responsibility for handling the users data in a way that ensures transparency and
+ * privacy for the user
+ * 2. Our duty of care in ensuring our users are not encouraged to hurt themselves when
+ * using our application
+ *
+ * Handling User Data:
+ * When handling user data, we need to ensure the user is aware of what data is being used
+ * and how is it being used. This should be done before the user interacts with the application.
+ *
+ * - We must make sure the data is not being used in ways that might conflict with what
+ * the user expects of us. To do this, we shouldn’t send any data to a “middleman”,
+ * instead we should have the data only be sent between the watch app and the phone app,
+ * therefore ensuring the data can’t be used for anything else.
+ * - The user expects us to use the data only for the functions they can perceive,
+ * (i.e. to create music). Therefore we shouldn’t require any sensor or private
+ * information for any other function of the app.
+ * - Ideally, the data stored by the phone app should not be stored on the device in the
+ * long term, and in large quantities. To prevent this, only a single reading from each sensor is stored
+ * in the mobile app at any given time. When a new value is received from the watch, the previously
+ * received value is overwritten.
+ * - An exception to this is the gyrometer sensor, in which a rotation vector
+ * is calculated from the current gyrometer values, and the previous rotation vector is stored within the
+ * app (as well as the current rotation vector). This must be done to calculate relative angular rotation
+ * changes, with respect to a previous value. As the process of creating the rotation vector introduces
+ * a linear drift/error term among other inaccuracies, the previously stored rotation vector data is at
+ * least partially transformed such that it does not directly identify a user.
+ * - Within the wearable application, the user has the ability to enable or disable sensors, effectively
+ * being able to revoke consent for their data being transferred/logged within the apps. If sensors are
+ * disabled, a value of 999.0 is sent from the wearable app to the phone app. When the music synthesis
+ * component receives this value of 999.0, any musical elements associated with the sensor are disabled.
+ * The music synthesis component then resets these to an arbitrary default start-up value.
+ * - When the instance of the app is destroyed (eg. the app is closed), listeners that interface with the
+ * wearable app (and receive values from it) are removed. This means that the mobile device will not
+ * receive any data from the wearable app, if the mobile app has quit. Currently, the mobile app is
+ * also destroyed when the app's process is moved to the background (eg. when the user's screen is locked,
+ * or when a user attempts to switch applications without closing). Values are only received
+ * from the wearable app when the mobile app is actively running as a foreground process.
+ *
+ * Duty of Care:
+ * When it comes to our duty of care, we have to decide on the line between what is
+ * inhibiting the users ability to use the application, and what is encouraging undue
+ * risk to our users. This is also difficult as health is very dependent on a person's
+ * age and overall health status.
+ * Fortunately for us, the “Guiness Book of World Records” was faced with a very similar issue,
+ * so we can apply their reasoning to our own sensors.
+ *
+ * We shouldn’t encourage users to perform activities that are:
+ * - Risky to a user's long term health
+ * - That an average, unqualified person couldn't reasonably try and accomplish
+ *
+ * Heart Rate:
+ * - While a person could artificially increase their heart rate to risky places via drugs,
+ * this is far more difficult to do than trying to lower your heart rate, which you can do by
+ * holding your breath for long periods of time
+ * (natural response of the body to preserve resources). Therefore, we should put much more
+ * stringent checks in place to ensure the user doesn’t lower their heart rate too low.
+ * A heart rate in the range of 50 - 200 bpm is acceptable. Notably, it is possible to
+ * have a heart rate lower than 50 and still be healthy (if you are an athlete), but the
+ * risk of our users reaching this heart rate by unhealthy means was considered too great.
+ * - As the heart rate sensor corresponds to the music tempo, it must be enabled for any
+ * other passive inputs (temperature and light intensity) to be used/processed within the
+ * music synthesis component.
+ *
+ * Gyrometer + Accelerometer:
+ * - These values were not bounded when receiving them from the wearable app. However,
+ * the values are bounded within the music synthesis component itself. This will result in
+ * extreme values producing identical outputs to the end points of the value ranges.
+ * We hope that this will discourage users from performing dangerous or extreme movements,
+ * as no unique musical content will be generated for dangerous gestures, resulting in
+ * users not bothering to seek out any unheard/unique musical content.
+ * - Both accelerometer and gyrometer input data is transformed in a way which translates
+ * certain user gestures into appropriate numeric values, which can then be used to create
+ * music appropriately. A result of these transformations is that a user's accelerometer
+ * and gyrometer inputs are partially abstracted when sending them to the music synthesis
+ * component.
+ * - For accelerometer values, this involves extracting the force of
+ * linear acceleration, then calculating the magnitude of this linear acceleration. This
+ * process inevitably introduces some error/noise into the calculated values, and abstracts
+ * the original data in a way that makes it difficult (if not impossible) to recover.
+ * - The gyrometer performs an integration/quarternion rotation operation, which results in
+ * a linear drift/error term being added, which abstracts the original input
+ * data.
+ * - If the gyrometer inputs are disabled in the wearable app, then the pitch values for the
+ * melody instrument (in the music synthesis component) will no longer be changed. The pitch of
+ * the melody will stay at a static value.
+ * - If the accelerometer inputs are disabled by the wearble, then the melody instrument will
+ * be turned off entirely in the music synthesis component.
+ *
+ * Temperature:
+ * - Considering that this sensor is on the person's wrist, it is reasonable to assume
+ * that a healthy temperature for the person's skin or the surrounding environment is acceptable.
+ * Therefore, our range will be bounded to 0 – 55 degrees Celsius, as standard environment temperatures
+ * could potentially reach within this range.
+ * - Disabling the temperature sensor in the wearable app will result in a static, default
+ * temperature value being used by the music synthesis component.
+ *
+ * Light Sensor:
+ * - There isn’t a need to put a limit on the light sensor. While it is possible to blind yourself
+ * with very bright lights, it is too difficult for the watch to track (as it depends on the
+ * amount of light your eyes are taking in). Therefore we do not consider misuse of this sensor
+ * to fall into our duty of care, as we cannot control it.
+ * - Disabling the light sensor in the wearable app will result in a static, default
+ * light intensity value being used by the music synthesis component.
+ * */
+
+
 class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     /**
@@ -67,11 +178,18 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
      * destroys the app on pause, preventing it from running in the background.
      * If you want to add the ability to handle stopping/restarting audio once an app has been moved
      * to/from a background process, you might need to look into the issue with audio automatically
-     * playing on startup in the onResume method (see DECO-38).
+     * playing on startup in the onResume method.
+     *
+     * When the instance of the app is destroyed (eg. the app is closed), listeners that interface with the
+     * wearable app (and receive values from it) are removed. This means that the mobile device will not
+     * receive any data from the wearable app, if the mobile app has quit. Currently, the mobile app is
+     * also destroyed when the app's process is moved to the background (eg. when the user's screen is locked,
+     * or when a user attempts to switch applications without closing). Values are only received
+     * from the wearable app when the mobile app is actively running as a foreground process.
      */
     override fun onPause() {
 
-        // remove wearable listener when app is paused/navigated off, but not closed
+        // Remove the wearable listener when app is paused/navigated off, but not closed
         Wearable.getDataClient(this).removeListener(this)
 
         // Toggle audio to stop by sending float value of 0.0 to Kortholt/PD patch
@@ -104,10 +222,10 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
      * for the app to run in the background. Because of this, onResume is only currently called when
      * initialising the app (after onCreate is called). If you want to include the ability for the app
      * to run as a background process, you may need to look into some issues with the logic for audio
-     * playback in this method (see DECO-38).
+     * playback in this method.
      */
     public override fun onResume() {
-        // add wearable listener when tab is resumed
+        // Add wearable listener when tab is resumed
         Wearable.getDataClient(this).addListener(this)
 
         runBlocking {
@@ -124,6 +242,14 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
      * Handles audio components when the app is closed completely (app instance is destroyed).
      * Toggles the audio off, then stops the audio stream and closes the opened PD patch in
      * Kortholt.
+     *
+     * When the instance of the app is destroyed (eg. the app is closed), listeners that interface with the
+     * wearable app (and receive values from it) are removed. To do this, the onPause method is called - this
+     * method is always automatically called before the onDestroy method. This means that the mobile device will not
+     * receive any data from the wearable app, if the mobile app has quit. Currently, the mobile app is
+     * also destroyed when the app's process is moved to the background (eg. when the user's screen is locked,
+     * or when a user attempts to switch applications without closing). Values are only received
+     * from the wearable app when the mobile app is actively running as a foreground process.
      */
     override fun onDestroy() {
         // Toggle audio to stop by sending float value of 0.0 to Kortholt/PD patch
@@ -141,18 +267,20 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     }
 
     /*
-    * Initialise the passive input sensors.
+    * Initialise the passive input sensors to the 'disabled' sensor value of 999.0.
+    * This indicates to the music synthesis components that the sensors are disabled on startup, until
+    * other sensor values are received.
     * */
     // Heart rate
     private var localHeartRate by mutableStateOf<Float>( 999.00F)
-    // For temperature testing
+    // For temperature
     private var localTemperature by mutableStateOf<Float>( 999.00F)
-    // For light sensor testing
+    // For light sensor
     private var localLight by mutableStateOf<Float>( 999.00F)
 
     /*
     Initialise the active input sensors and any required vars for their associated calculations/
-    value transformations.
+    value transformations. These are initialised similarly to the passive sensors.
      */
     // Accelerometer values for x, y, z axes:
     private var localAccelValues by mutableStateOf<FloatArray>(floatArrayOf(999.00F, 999.00F, 999.00F))
@@ -163,9 +291,9 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
     var gyroTimestamp: Long = 0L
 
     /**
-     *  onDataChanged()
-    * triggers when data is changed in the wearOS app
-    * this function will listen to all sensor data
+     * onDataChanged()
+    * triggers when data is changed in the wearOS app.
+    * this function will listen to all sensor data.
     * */
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         Log.d("DATA_CHANGED", "data is being received")
@@ -199,7 +327,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     "Accel values: [${localAccelValues[0]}, ${localAccelValues[1]}, ${localAccelValues[2]}]"
                 )
 
-                // Testing if the light/temperature sensors work ok
+                // Light and temperature sensors
                 val tempoTemp = dataMap.getFloat("temperature")
                 if (tempoTemp.toInt() != 0) {
                     localTemperature = dataMap.getFloat("temperature")
@@ -226,7 +354,11 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         }
     }
 
-//    On create
+    /**
+     * Method used when an instance of the app is first created.
+     * Performs required setup for the audio synthesis components (opening the Pure Data patch).
+     * Also sets the mobile app's UI components, and methods for retrieving sensor data from the wearable.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Load PD patch via Kortholt after extracting from zip file - patch is used to generate audio
@@ -234,6 +366,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
         setContent {
             MainCompanionAppLayout(localHeartRate, localAccelValues, localGyroValues, gyroTimestamp,
                 localLight, localTemperature)
+            // Keep the screen on/disable locking the phone while the app is in the foreground
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
