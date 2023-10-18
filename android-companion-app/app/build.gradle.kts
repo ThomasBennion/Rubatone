@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.Heartbeats_by_Dr_Dre"
-//        change min sdk from 24 to 28 for Kortholt
+        // For Kortholt library - the minimum SDK was changed from 24 to 28
         minSdk = 28
         targetSdk = 31
         versionCode = 1
@@ -31,19 +31,13 @@ android {
         }
     }
 
-/*
-compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
- */
-
+    // For Kortholt library - the Java compile version was changed from 1.8 to 11
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-//    change jvmtarget from 1.8 to 11
+    // For Kortholt library - JVM target was changed from 1.8 to 11
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
