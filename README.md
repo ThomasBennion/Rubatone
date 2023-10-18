@@ -23,14 +23,29 @@ The mobile app code sends sensor data as float values to this patch. When input 
 Passive inputs are used to create/generate percussion/drums, chords/pads and bass instruments. Heart rate data is used directly to change the tempo of the music - faster heart rate gives a faster tempo. There are also several intensity thresholds for the tempo, which change the loops chosen by the drums/percussion section (to try and match the intensity levels associated with that heart rate). For heart rate values from 160 BPM upwards, this tempo threshold is mapped to the 'lowest intensity' tempo state, which contains minimal or no drums/percussion. We hope that this will discourage users from trying to increase their heart rate into unsafe/dangerously high ranges.
 
 Temperature and light intensity data are mapped into discrete state spaces, which change the music into distinct sounding 'sections' when these values change past certain thresholds. As with all other values, these have been bounded to ranges which were considered easily reproducible (such that a user wouldn't endanger themself). 
+```
+Some examples of this:
 
+![Bounding of input values for heart rate (1)](https://drive.google.com/file/d/1zINz8bfcIwN-rqmBBclnKzvAVfgSi5OU/view?usp=share_link)
 
+![Bounding of input values for heart rate (2)](https://drive.google.com/file/d/1FOCVuVCRSluvm8hGfcozWtu2jaiybaA4/view?usp=share_link)
+
+![Heart rate intensity thresholds](https://drive.google.com/file/d/10LlM_LDnamRXnLhZY6Fzz9J11v9PD9lv/view?usp=share_link)
+```
 A note about the privacy/security:
 
 The audio synthesis component is designed to receive a single value of data for each sensor. When new data is received, the previously received data is then immediately overwritten. This patch was implemented so that a user's data would not be stored, beyond the most recently received value. As well as this, if the patch receives values of 999.0 from a sensor (indicating that the sensor has been turned off), the values currently held within the patch should be reset to the default start-up values, with the user's data being overwritten.
 
 Some sensors (heart rate, temperature, light intensity) do not alter the input values beyond bounding the input values to a sensible range. The active input sensor (accelerometer and gyrometer) values will be transformed/rescaled. This works to partially anonymise the input data (and therefore partially de-identifying the user data).
 ```
+
+Some examples of this:
+
+![Handling 'sensor off' values for heart rate](https://drive.google.com/file/d/1PrR4BwaIJNzcy2zXzqnGMzDz_wSopZbi/view?usp=share_link)
+
+![Transforming/rescaling input values for accelerometer (1)](https://drive.google.com/file/d/1TDEObkfyN0Whksq0VqtnpB8yAjEsc7rm/view?usp=share_link)
+
+![Transforming/rescaling input values for accelerometer (2)](https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link)
 
 ## Designing for accessibility
 Some information on this was included in the Pure Data patch in *./pd_patches/passive_inputs_test.pd* as comments on the main page:
@@ -39,6 +54,12 @@ Some information on this was included in the Pure Data patch in *./pd_patches/pa
 Sensor inputs are used in various ways to create music. Active inputs (accelerometer, gyrometer) are responsible for a melodic instrument. Their values change the sound's volume/amplitude/dynamics and pitch/frequency respectively.
 As human ears perceive changes in pitch and volume on logarithmic scales, a user expects a movement or position in a control scheme to correspond to an exponential mapping of values. To make the instrument more intuitive (especially so for those not familiar with musical instruments and music theory), active input values are re-scaled from exponential as linear mappings.
 ```
+Some examples of this:
+
+![Transforming/rescaling input values for accelerometer](https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link)
+
+![Transforming/rescaling input values for gyrometer (converting from an exponential MIDI note value to a linear frequency value)](https://drive.google.com/file/d/1NncmUweccGHtZTi9nM_TCK-KPwSPiLNV/view?usp=share_link)
+
 
 Rubatone currently bounds the pitch of its melody instrument to the 12 Tone Equal Temperament (12 TET) standard tuning. 12 Tone Equal Temperament is a pitch tuning system, which originated from European musical practices; in the modern day, this tuning system has seen widespread adoption across many cultures and societies, due to various influences (such as globalism, colonialism, and through various communication technologies such as the internet, causing the Westernisation and homogenisation of other cultures). Whilst this design choice may potentially limit users from creating sounds within other microtonal or xenharmonic tunings (which may limit the user's freedom of expression with the instrument, and also enforces a Western musical practice onto the user), it was decided that discretising the pitch would be the most appropriate option for accessibility. In order to create an instrument that was easy for first time users to pick up and play, we chose to limit the range of possible values and therefore degree of precision required over the pitch controls. 12 TET was chosen as the tuning system, as (for better or for worse), this tuning is recognisable and widely adopted by many cultures around the modern world. 12 tone tuning would therefore be considered subjectively 'pleasant' and 'in tune' by most potential users. The other musical components of Rubatone (the instrumental music generated by passive inputs) are also constrained to 12 TET tuning, to match the tonal content generated by active inputs.
 
@@ -137,7 +158,8 @@ To open this file as a standalone Pure Data patch, the same file can be found (u
 
 - 'Pure Data' is a visual programming language used for real-time music generation: http://puredata.info/
 
-- 'Kortholt' also uses Android's 'Oboe' library for handling Audio I/O: https://github.com/google/oboe 
+- 'Kortholt' also uses Android's 'Oboe' library for handling Audio I/O: https://github.com/google/oboe
+
 - 'Android SDK' and 'Jetpack Compose' were used to create the various mobile and wearable app components, including interfacing with hardware sensors and UI elements: https://developer.android.com/
 
 # Music Synthesis Info
@@ -145,6 +167,10 @@ The music component is made with patches using Pure Data, a visual programming l
 These patches interface with the mobile app's project code by using Kortholt. Kortholt combines LibPD (a Pure Data wrapper that converts patches into a compilable format for the Kotlin code) and Android's Oboe library (used to handle the audio I/O, drivers, and various other settings to optimise for low latency).
 The mobile app code will send float values for sensor inputs to the Pure Data patch, via Kortholt methods.
 You can also use the Pure Data (PD) patches on their own, if you would like to test them, or see exactly how the music synthesis works in more detail. These patches can be found in the *./pd_patches* directory.
+
+Here are some examples of what the various musical components sound like: https://drive.google.com/drive/folders/1vTTTFQ566BI69s2_AKwTh8KSf03fYj4L
+
+If you want to see what the Pure Data patch used in Rubatone looks like/does, but don't want to download Pure Data, you can see brief video demonstrations here: https://drive.google.com/drive/folders/1-4VzrA4_uhGQU_6DVyq5SnZZO9ETCZWs
 
 ## Setting up Pure Data
 To open these, download the most recent version of PD vanilla here:
@@ -186,7 +212,7 @@ This patch contains a modified version of the MvP melodic synth (in the file *pu
 - **appHeartRate:** receives a float value of the heart rate - changes the pulse tempo based on this value.
     Accepts all values, but bounds them to the range [50, 200] BPM. There are three tempo intensity states, in which different drum loops are chosen. Low intensity is in the ranges 50-79 BPM and 160-200 BPM, medium intensity is within 80-119 BPM, and high intensity is within 120-159 BPM.
 - **appAccelerometer:** receives a float value of the intensity/force used for an arm movement, which is the magnitude of the linear acceleration across all 3 axes. Changes the volume/dynamics of the pulsing tone based on this value. More forceful arm movements will result in a louder sound; gentler arm movements result in a quieter sound.
-    Currently configured to bound input values to the range 7 to 10. These values are then mapped from an exponential to a linear distribution, and rescaled to the range 0 to 0.3, to produce volume/amplitude values in this range. If there is no change in input values, or if values close to 7 are sent, the volume will gradually ramp down to 0 (within 500ms), as the implementation assumes that the user is no longer attempting to play a note.
+    Currently configured to bound input values to the range 8 to 10. These values are then mapped from an exponential to a linear distribution, and rescaled to the range 0 to 0.3, to produce volume/amplitude values in this range. If there is no change in input values, or if values close to 7 are sent, the volume will gradually ramp down to 0 (within 500ms), as the implementation assumes that the user is no longer attempting to play a note.
 - **appGyrometer:** receives a float value of the vertical position of the arm movement, which is the gyroscope's approximate angle of orientation for rotations about the x axis of the wearable (pitch rotations). Changes the pitch/frequency of the pulsing tone based on this value. The given orientation values are relative to (and based on) the previously calculated orientation value.
     Currently configured to bound input values to the range ~(-pi)/2 to ~pi/2, to give pitches in the range of two octaves (notes between C4 and C6). Tilting the device in the y axis upwards by ~90 degrees will result in the highest note C6 being played. Tilting the device downwards in this axis by ~90 degrees will play the lowest note C4. If the device face is held completely level in the x axis, the middle note of this range (C5) should be played. 
 - **appPitchControl:** Changes the form of pitch control being used. Has this behaviour when sent the following float values:
@@ -208,6 +234,8 @@ This patch was originally used in the Minimum Viable Product (MvP) prototype. It
 
 
 ## A bit more detail about how the music works (passive inputs)
+Here are some examples of what the various musical components sound like: https://drive.google.com/drive/folders/1vTTTFQ566BI69s2_AKwTh8KSf03fYj4L
+
 These components are partially generative or stochastic, meaning that they play sequenced loops for each of the instruments, with some elements chosen at random. For example, the bass and chords instruments will randomly choose to play one of three distinct sounding loops, which use different chords and notes. Certain drum hits and notes in the chord and bass section also have assigned probabilities that a sequenced note will play. This means that any session of playing/performing with Rubatone will be unique, and sound unlike the last!
 
 The heart rate values are mapped to the music's tempo, with faster heart rates creating faster-paced music and slower heart rates creating slower music. As well as this, heart rate values are mapped to three discrete 'intensity' states (low, medium, and high intensity), with different drum loops and rhythms being chosen to match the intensity level.
