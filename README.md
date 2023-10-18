@@ -141,7 +141,44 @@ these to confirm if there are any issues.
 
 
 ## How to build/run the project
-TODO do this part later
+- To run the code on phyiscal devices, you first need to load the project into 'Android Studio' (found at: https://developer.android.com/studio) onto your computer
+- Note that this guide was created assuming you are using a phone with a modern version of Android and a watch using 'One UI' version 4.5. Instruction may differ if this is not what you are using
+
+- After installing android studio, complete the following steps to load the project:
+    - Open 'Android Studio'
+    - In 'Android Studio', go to 'File', this should be at the top left of the window
+    - Click 'Open'
+    - Navigate to the project's folder
+    - In the project's folder, select 'android-companion-app'
+    - Click 'OK'
+    - Once the project is loaded in, there should be a hammer icon near the top right of the screen, click on the dropdown box and select 'Make Project'
+
+- To get a physical android phone to download the app, the following steps are required:
+    - Enable 'Developer options', you can find how to do this for you phone via the internet
+    - In 'Developer options', enable 'USB debugging'
+    - Connect your phone via a USB cable to your computer
+    - You should receive a request on your phone to 'Allow USB debugging?' access, click 'Allow'
+    - Within 'Android Studio', there should be a dropdown box stating either 'app' or 'wearosapp' near the top right of the screen, click on the dropdown box and select 'app'
+    - To the right of that dropdown box, there should be another dropdown box, click on that dropdown box and selects your device (It should be under "Running devices")
+    - Within 'Android Studio', there should be a green arrow near the top right of the screen that says "Run 'app'" when you hover over it, click it
+    - After it finishes loading (Note that this can take a while) the app should appear on your phone as 'Rubatone'
+
+- To get a physical watch to download that app, the following steps are required:
+    - Enable 'Developer options', you can find how to do this for you watch via the internet
+    - Connect both your watch and your computer , make sure that this network allows for ADB debugging (most public/company/hotel networks do not for security reasons)
+    - In 'Developer options', enable 'ADB debugging' and 'Debug over WI-FI'
+    - In 'Developer options', select 'Wireless debugging' and enable 'Wireless debugging'
+    - You should get a popup on your phone asking 'Allow debugging on this network?', select 'Allow'
+    - Still in 'Wireless debugging', select 'Pair new device'
+    - Under 'IP address and port', there should be an ip adress followed by a colon and then a port number
+    - On your computer, navigate to where Android Studio has installed 'adb' and open it in a terminal/powershell
+    - Within this window, type the command: ./adb connect ($S)
+        -Where ($S) is the IP number your watch gave you
+    - On your watch, you should now get a notification saying 'Allow Debugging?', select 'OK'
+    - Within 'Android Studio', there should be a dropdown box stating either 'app' or 'wearosapp' near the top right of the screen, click on the dropdown box and select 'wearosapp'
+    - To the right of that dropdown box, there should be another dropdown box, click on that dropdown box and selects your device (It should be under "Running devices")
+    - Within 'Android Studio', there should be a green arrow near the top right of the screen that says "Run 'wearosapp'" when you hover over it, click it
+    - After it finishes loading (Note that this can take a while) the app should appear on your watch as 'Rubatone'
 
 
 # Important Project Files
