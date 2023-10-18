@@ -24,13 +24,14 @@ Passive inputs are used to create/generate percussion/drums, chords/pads and bas
 
 Temperature and light intensity data are mapped into discrete state spaces, which change the music into distinct sounding 'sections' when these values change past certain thresholds. As with all other values, these have been bounded to ranges which were considered easily reproducible (such that a user wouldn't endanger themself). 
 ```
-Some examples of this:
+**Some examples of this (screenshots):**
 
-![Bounding of input values for heart rate (1)](https://drive.google.com/file/d/1zINz8bfcIwN-rqmBBclnKzvAVfgSi5OU/view?usp=share_link)
+*Bounding of input values for heart rate (1):* https://drive.google.com/file/d/1zINz8bfcIwN-rqmBBclnKzvAVfgSi5OU/view?usp=share_link
 
-![Bounding of input values for heart rate (2)](https://drive.google.com/file/d/1FOCVuVCRSluvm8hGfcozWtu2jaiybaA4/view?usp=share_link)
+*Bounding of input values for heart rate (2):* https://drive.google.com/file/d/1FOCVuVCRSluvm8hGfcozWtu2jaiybaA4/view?usp=share_link
 
-![Heart rate intensity thresholds](https://drive.google.com/file/d/10LlM_LDnamRXnLhZY6Fzz9J11v9PD9lv/view?usp=share_link)
+*Heart rate intensity thresholds:* https://drive.google.com/file/d/10LlM_LDnamRXnLhZY6Fzz9J11v9PD9lv/view?usp=share_link
+
 ```
 A note about the privacy/security:
 
@@ -39,13 +40,13 @@ The audio synthesis component is designed to receive a single value of data for 
 Some sensors (heart rate, temperature, light intensity) do not alter the input values beyond bounding the input values to a sensible range. The active input sensor (accelerometer and gyrometer) values will be transformed/rescaled. This works to partially anonymise the input data (and therefore partially de-identifying the user data).
 ```
 
-Some examples of this:
+**Some examples of this (screenshots):**
 
-![Handling 'sensor off' values for heart rate](https://drive.google.com/file/d/1PrR4BwaIJNzcy2zXzqnGMzDz_wSopZbi/view?usp=share_link)
+*Handling 'sensor off' values for heart rate:* https://drive.google.com/file/d/1PrR4BwaIJNzcy2zXzqnGMzDz_wSopZbi/view?usp=share_link
 
-![Transforming/rescaling input values for accelerometer (1)](https://drive.google.com/file/d/1TDEObkfyN0Whksq0VqtnpB8yAjEsc7rm/view?usp=share_link)
+*Transforming/rescaling input values for accelerometer (1):* https://drive.google.com/file/d/1TDEObkfyN0Whksq0VqtnpB8yAjEsc7rm/view?usp=share_link
 
-![Transforming/rescaling input values for accelerometer (2)](https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link)
+*Transforming/rescaling input values for accelerometer (2):* https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link
 
 ## Designing for accessibility
 Some information on this was included in the Pure Data patch in *./pd_patches/passive_inputs_test.pd* as comments on the main page:
@@ -54,11 +55,11 @@ Some information on this was included in the Pure Data patch in *./pd_patches/pa
 Sensor inputs are used in various ways to create music. Active inputs (accelerometer, gyrometer) are responsible for a melodic instrument. Their values change the sound's volume/amplitude/dynamics and pitch/frequency respectively.
 As human ears perceive changes in pitch and volume on logarithmic scales, a user expects a movement or position in a control scheme to correspond to an exponential mapping of values. To make the instrument more intuitive (especially so for those not familiar with musical instruments and music theory), active input values are re-scaled from exponential as linear mappings.
 ```
-Some examples of this:
+**Some examples of this (screenshots):**
 
-![Transforming/rescaling input values for accelerometer](https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link)
+*Transforming/rescaling input values for accelerometer:* https://drive.google.com/file/d/1k8XfHmxRaB_mXx2ipY5ZMAKYE67Ioqru/view?usp=share_link
 
-![Transforming/rescaling input values for gyrometer (converting from an exponential MIDI note value to a linear frequency value)](https://drive.google.com/file/d/1NncmUweccGHtZTi9nM_TCK-KPwSPiLNV/view?usp=share_link)
+*Transforming/rescaling input values for gyrometer (converting from an exponential MIDI note value to a linear frequency value):* https://drive.google.com/file/d/1NncmUweccGHtZTi9nM_TCK-KPwSPiLNV/view?usp=share_link
 
 
 Rubatone currently bounds the pitch of its melody instrument to the 12 Tone Equal Temperament (12 TET) standard tuning. 12 Tone Equal Temperament is a pitch tuning system, which originated from European musical practices; in the modern day, this tuning system has seen widespread adoption across many cultures and societies, due to various influences (such as globalism, colonialism, and through various communication technologies such as the internet, causing the Westernisation and homogenisation of other cultures). Whilst this design choice may potentially limit users from creating sounds within other microtonal or xenharmonic tunings (which may limit the user's freedom of expression with the instrument, and also enforces a Western musical practice onto the user), it was decided that discretising the pitch would be the most appropriate option for accessibility. In order to create an instrument that was easy for first time users to pick up and play, we chose to limit the range of possible values and therefore degree of precision required over the pitch controls. 12 TET was chosen as the tuning system, as (for better or for worse), this tuning is recognisable and widely adopted by many cultures around the modern world. 12 tone tuning would therefore be considered subjectively 'pleasant' and 'in tune' by most potential users. The other musical components of Rubatone (the instrumental music generated by passive inputs) are also constrained to 12 TET tuning, to match the tonal content generated by active inputs.
