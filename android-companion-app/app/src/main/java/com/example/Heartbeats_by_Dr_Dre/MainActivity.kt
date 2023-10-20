@@ -7,10 +7,21 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.repeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,10 +37,13 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,10 +51,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
@@ -53,6 +75,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.simno.kortholt.kortholt
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -346,7 +369,7 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
                     localGyroValues = tempoGyroValues
                     // Set the timestamp for when the gyro values were saved into the app
                     gyroTimestamp = System.nanoTime()
-                    Log.d("CHANGED", "Gyro values: [${localGyroValues[0]}, ${localGyroValues[1]}, ${localGyroValues[2]}]")
+//                    Log.d("CHANGED", "Gyro values: [${localGyroValues[0]}, ${localGyroValues[1]}, ${localGyroValues[2]}]")
                     Log.d("CHANGED", "Gyro timestamp: $gyroTimestamp")
                 }
 
@@ -395,6 +418,13 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
                            localGyroValues: FloatArray, gyroTimestamp: Long,
                            localLight: Float, localTemperature: Float) {
+
+    // visualizer note states
+    var visualizerNoteMagnitude by remember { mutableFloatStateOf(0.0F) }
+    var visualizerNoteFlipGyro by remember { mutableFloatStateOf(0.0F) }
+    var visualizerNoteTwistGyro by remember { mutableFloatStateOf(0.0F) }
+
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -403,7 +433,7 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("Heartbeats by Dr.Dre")
+                    Text("Rubatone")
                 }
                 
             )
@@ -435,11 +465,18 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
             TemperatureControl(localTemperature)
 
             // Changes the music synth dynamics/volume
-            DynamicsControl(localAccelValues)
+
+            DynamicsControl(localAccelValues, updateVisualizerMagnitude = { newVal ->
+                visualizerNoteMagnitude = newVal
+            })
 
             // Changes the music synth pitch (0.0f - fully continuous)
             val pitchControlType = 2.0f
-            PitchControl(localGyroValues, pitchControlType, gyroTimestamp)
+            PitchControl(localGyroValues, pitchControlType, gyroTimestamp, updateVisualizerX = { newVal ->
+                visualizerNoteFlipGyro = newVal
+            }, updateVisualizerZ = { newVal ->
+                visualizerNoteTwistGyro = newVal
+            })
 
         }
 
@@ -452,22 +489,216 @@ fun MainCompanionAppLayout(localHeartRate: Float, localAccelValues: FloatArray,
                 .fillMaxWidth()
                 .fillMaxHeight()
         ) {
-            HeartRateMonitor(localHeartRate)
+            AudioVisualization(localHeartRate, localLight, visualizerNoteMagnitude, visualizerNoteFlipGyro, visualizerNoteTwistGyro)
         }
     }
 }
+
+
+
+
+
+
+
+
+
+@Composable
+fun AudioVisualization(localHeartRate: Float, localLight: Float, visualizerNoteMagnitude: Float,
+                       visualizerNoteFlipGyro: Float, visualizerNoteTwistGyro: Float) {
+
+    var audioBGColor = Color.Black
+
+    // if light value (lux) detected from watch is less than 25 switch the background color to white
+    if (localLight <= 25) {
+        audioBGColor = Color.White
+    }
+    Log.d("BGCOLOR", "Light sensor: $localLight lux, $audioBGColor")
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(audioBGColor)
+    )
+    {
+        Row(Modifier.fillMaxWidth(), Arrangement.End) {
+            Box(Modifier.padding(12.dp, 8.dp), contentAlignment = Alignment.Center) {
+                HeartPulse(localHeartRate) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = HeartShape,
+                        modifier = Modifier.size(80.dp),
+                        content = {}
+                    )
+                }
+                VisualizationText(localHeartRate)
+            }
+        }
+
+        Row(
+            Modifier
+                .fillMaxSize(),
+            Arrangement.Center,
+            Alignment.CenterVertically) {
+            VisualizerNote(localHeartRate, localLight, visualizerNoteMagnitude, visualizerNoteFlipGyro, visualizerNoteTwistGyro)
+        }
+    }
+}
+
+
+@Composable
+fun VisualizationText(sensorVal: Float) {
+    Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("${sensorVal.roundToInt()}", fontSize = 15.sp, color = Color.White)
+    }
+}
+
+@Composable
+fun VisualizerNote(localHeartRate: Float, localLight: Float, visualizerNoteMagnitude: Float,
+                   visualizerNoteFlipGyro: Float, visualizerNoteTwistGyro: Float) {
+
+    Log.d("note-mag", "${visualizerNoteMagnitude}")
+    Log.d("note-gyro", "noteX:${visualizerNoteFlipGyro}, noteZ:${visualizerNoteTwistGyro}")
+
+    var noteColor = 0
+    var noteSize = 200.dp
+
+    if (localLight.roundToInt() <= 25) {
+        if (localHeartRate < 80) {
+            noteColor = R.drawable.blackcrotchet
+        } else if (localHeartRate >= 80 && localHeartRate < 120){
+            noteColor = R.drawable.blacknote
+        } else if (localHeartRate >= 120 && localHeartRate < 201) {
+            noteColor = R.drawable.blacksemiquaver
+        }   else if (localHeartRate >= 201) {
+            noteColor = R.drawable.blackcrotchetrest
+        }
+    } else {
+        if (localHeartRate < 80) {
+            noteColor = R.drawable.whitecrotchet
+        } else if (localHeartRate >= 80 && localHeartRate < 120){
+            noteColor = R.drawable.whitenote
+        } else if (localHeartRate >= 120 && localHeartRate < 201) {
+            noteColor = R.drawable.whitesemiquaver
+        } else if (localHeartRate >= 201) {
+            noteColor = R.drawable.whitecrotchetrest
+        }
+    }
+
+
+    if (visualizerNoteMagnitude > 8) {
+        noteSize = 300.dp
+    }
+
+
+    Box(
+        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp)
+    ) {
+        Image(painter = painterResource(id = noteColor),
+            contentDescription = "Note",
+            modifier = Modifier
+                .size(noteSize)
+                .graphicsLayer {
+                    this.rotationX = visualizerNoteFlipGyro
+//                this.rotationY = 100f
+                    this.rotationZ = visualizerNoteTwistGyro
+                }
+        )
+    }
+}
+
+@Composable
+fun HeartPulse(localHeartRate: Float, content: @Composable () -> Unit) {
+    var heartRateSpeedInMiliSecs by rememberSaveable { mutableIntStateOf(0) }
+    heartRateSpeedInMiliSecs = 400
+    if (localHeartRate.roundToInt() < 900) {
+        heartRateSpeedInMiliSecs = 60000 / localHeartRate.toInt()
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(heartRateSpeedInMiliSecs),
+            repeatMode = RepeatMode.Reverse,
+        ), label = "",
+    )
+
+
+    Box(modifier = Modifier.scale(scale)) {
+        content()
+    }
+}
+
+val HeartShape: Shape = object : Shape {
+    override fun createOutline(
+        size: androidx.compose.ui.geometry.Size,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        density: Density
+    ): Outline {
+        val path = Path().apply {
+            heartPath(size = size)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
+private fun Path.heartPath(size: androidx.compose.ui.geometry.Size): Path {
+    val width: Float = size.width
+    val height: Float = size.height
+
+    moveTo((width / 2).toFloat(), (height / 5).toFloat())
+
+    cubicTo(
+        (5 * width / 14).toFloat(), 0f,
+        0f, (height / 15).toFloat(),
+        (width / 28).toFloat(), (2 * height / 5).toFloat()
+    )
+
+    cubicTo(
+        (width / 14).toFloat(), (2 * height / 3).toFloat(),
+        (3 * width / 7).toFloat(), (5 * height / 6).toFloat(),
+        (width / 2).toFloat(), height.toFloat()
+    )
+
+    cubicTo(
+        (4 * width / 7).toFloat(), (5 * height / 6).toFloat(),
+        (13 * width / 14).toFloat(), (2 * height / 3).toFloat(),
+        (27 * width / 28).toFloat(), (2 * height / 5).toFloat()
+    )
+
+    cubicTo(
+        width.toFloat(), (height / 15).toFloat(),
+        (9 * width / 14).toFloat(), 0f,
+        (width / 2).toFloat(), (height / 5).toFloat()
+    )
+    return this
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /** HeartRateMonitor(localHeartRate)
  *
  * displays heart rate passed from parents
  * */
-@Composable
-fun HeartRateMonitor(localHeartRate: Float) {
-    // state variable that represents the current heart rate, initialized to 0 for ease of testing
-        androidx.compose.material3.Icon(imageVector = Icons.Default.Favorite, contentDescription ="", Modifier.size(120.dp) )
-        Text(text = "${localHeartRate.roundToInt()} BPM", fontSize = 35.sp)
-
-}
+//@Composable
+//fun HeartRateMonitor(localHeartRate: Float) {
+//    // state variable that represents the current heart rate, initialized to 0 for ease of testing
+//        androidx.compose.material3.Icon(imageVector = Icons.Default.Favorite, contentDescription ="", Modifier.size(120.dp) )
+//        Text(text = "${localHeartRate.roundToInt()} BPM", fontSize = 35.sp)
+//
+//}
 
 
 /**
@@ -633,7 +864,7 @@ fun LightControl(light: Float) {
  *                    Values of 999.00 are sent if the sensor is offline/disabled.
  */
 @Composable
-fun DynamicsControl(accelValues: FloatArray) {
+fun DynamicsControl(accelValues: FloatArray, updateVisualizerMagnitude: (Float) -> Unit) {
     val context = LocalContext.current
     val kortholt = remember { context.kortholt }
 
@@ -647,6 +878,9 @@ fun DynamicsControl(accelValues: FloatArray) {
         var linearAccelValues = getLinearAcceleration(accelValues)
         // Calculate the magnitude of the linear acceleration vectors
         accelMagnitude = getLinearAccelMagnitude(linearAccelValues)
+
+        // change visualizer magnitude
+        updateVisualizerMagnitude(accelMagnitude)
     }
     Log.d("ACCEL", "PD input value: $accelMagnitude")
     // Send the magnitude input value to the PD patch
@@ -754,7 +988,8 @@ fun getLinearAccelMagnitude(linearAccelValues: FloatArray): Float {
  * @param gyroTimestamp (float) A timestamp for the last gyro sensor value update into the app.
  */
 @Composable
-fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp: Long) {
+fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp: Long,
+                 updateVisualizerX: (Float) -> Unit, updateVisualizerZ: (Float) -> Unit) {
     val context = LocalContext.current
     val kortholt = remember { context.kortholt }
 
@@ -781,11 +1016,17 @@ fun PitchControl(gyroValues: FloatArray, pitchControlType: Float, gyroTimestamp:
         SensorManager.getOrientation(rotationCurrent, orientation)
 //        Log.d("GYRO", "Orientation: [${orientation[0]}, ${orientation[1]}, ${orientation[2]}]")
         pitchRotation = orientation[2].toFloat()
+
+        // convert pitchRotation(radians) to degrees and update the note visualizer
+        updateVisualizerX((pitchRotation * (180/ PI)).toFloat())
+        updateVisualizerZ((orientation[1] * (180/ PI)).toFloat())
+
+
         // Tried calculating an approx. height value with the assumption that the user's arm is exactly 1m long - this didn't work better
 //        height = sin(pitchRotation.toDouble()).toFloat()
     }
 
-    Log.d("GYRO", "PD input value: $pitchRotation")
+//    Log.d("GYRO", "PD input value: $pitchRotation")
     // Set the pitch control type in the PD patch
     kortholt.sendFloat("appPitchControl", pitchControlType)
     // Send the rotation value in the x axis (pitch) to the PD patch
